@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import json
 import sys
 from html import escape
 from pathlib import Path
@@ -32,6 +33,15 @@ def real(url: str) -> bool:
 def srcset(url: str) -> str:
     # srcset treats commas as separators, so a comma in the URL cuts it short
     return url.replace(",", "%2C")
+
+
+def building(cfg: dict) -> list[dict]:
+    """Which repo each "currently building" card shows. live.py writes the list on every run;
+    before its first run, fall back to the pins in the config."""
+    made = ROOT / "generated" / "building.json"
+    if made.exists():
+        return json.loads(made.read_text(encoding="utf-8"))
+    return cfg["building"].get("pin", [])
 
 
 def main():
@@ -77,8 +87,9 @@ def main():
     out.append(f'<p align="center">{pic("assets/gallery", "ASCII gallery: knight, koi, El waving, campfire")}</p>')
     out.append("")
     out.append(f'<h3>{pic("assets/h-building", "Currently building")}</h3>')
+    out.append(f'<p align="center">{pic("generated/ticker", "Latest pushes")}</p>')
     cards = []
-    for i, f in enumerate(cfg["featured"], 1):
+    for i, f in enumerate(building(cfg), 1):
         owner, _, name = f["repo"].rpartition("/")
         card = pic(f"generated/repo-{i}", name + (" (coming soon)" if f.get("upcoming") else ""), 412)
         cards.append(card if f.get("upcoming") else f'<a href="https://github.com/{owner or user}/{name}">{card}</a>')

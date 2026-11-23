@@ -26,12 +26,20 @@
     { "key": "fun_fact",     "value": "Ex tech boomer", "note": "Before college, tech and I were not friends" }
   ],
 
-  "featured": [
-    { "repo": "webapp-secondserve", "role": "backend lead", "tag": "Team", "fallback": "Surplus-food marketplace for IT313. Pickup-only listings, built with my team." },
-    { "repo": "my-first-rag",       "role": "solo",         "upcoming": true, "fallback": "I just learned RAG!" },
-    { "repo": "ThriftBite", "role": "upgrading",    "fallback": "Old team project, now a full-stack web app: Spring Boot, WebSockets, PostgreSQL, React." },
-    { "repo": "my-portfolio",       "role": "solo",         "fallback": "The comic-style portfolio this profile matches. El lives here." }
-  ],
+  "building": {
+    "slots": 4,
+    "pin": [
+      { "repo": "my-first-rag", "role": "solo", "upcoming": true, "fallback": "I just learned RAG!" }
+    ],
+    "skip": [],
+    "notes": {
+      "Merlin":             { "role": "solo",         "fallback": "AI desktop companion: a flaming skull mage who lives on your desktop and talks back." },
+      "ThriftBite":         { "role": "solo · v2",    "fallback": "Old team project, now a full-stack web app: Spring Boot, WebSockets, PostgreSQL, React." },
+      "Ka-dugo":            { "role": "team · IT312", "tag": "Team", "fallback": "Blood donation PWA. Book a drive, show your QR pass, give blood even offline." },
+      "webapp-secondserve": { "role": "backend lead", "tag": "Team", "fallback": "Surplus-food marketplace for IT313. Pickup-only listings, built with my team." },
+      "my-portfolio":       { "role": "solo",         "fallback": "The comic-style portfolio this profile matches. El lives here." }
+    }
+  },
 
   "links": {
     "portfolio": "https://elsteven-cruz.vercel.app",

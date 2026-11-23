@@ -310,7 +310,7 @@ def wip(theme: str, cfg: dict) -> str:
 
 # ---------------------------------------------------------------- section headings and footer
 
-HEADINGS = {"stats": "STATS", "building": "CURRENTLY BUILDING", "stack": "STACK", "gallery": "THE GALLERY"}
+HEADINGS = {"stats": "STATS", "activity": "RECENT ACTIVITY", "stack": "STACK", "gallery": "THE GALLERY"}
 
 
 def heading(theme: str, title: str) -> str:

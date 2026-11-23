@@ -72,6 +72,43 @@ def _haft(ink, x0, x1, r=2.6):
     return f'<path d="M{x0} -{r} L{x1} -{r} L{x1} {r} L{x0} {r} Z" fill="{ink}"/>'
 
 
+def _greatbow(ink, acc, paper):
+    """A heavy recurve greatbow drawn upright (grip at the origin, string on the +x side): thick cream limbs
+    with a black core and a cyan inlay, a broad riser, hooked recurve tips and a taut string."""
+    def centre(t, sign):
+        y = sign * (16 + 58 * t)
+        x = -18 * math.sin(math.pi * t * 0.85) + 18 * t ** 4      # bends back, then hooks forward at the tip
+        return x, y
+    out, tips = "", []
+    for sign in (-1, 1):
+        n = 22
+        L, R, C = [], [], []
+        for i in range(n + 1):
+            t = i / n
+            x, y = centre(t, sign)
+            half = 9 - 6 * t
+            L.append((x - half, y)); R.append((x + half, y)); C.append((x, y))
+        d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in L + R[::-1]) + " Z"
+        out += f'<path d="{d}" fill="{paper}" stroke="{ink}" stroke-width="2.6" stroke-linejoin="round"/>'
+        Li = [(x + (cx - x) * 0.62, y) for (x, y), (cx, _) in zip(L, C)]
+        Ri = [(x + (cx - x) * 0.62, y) for (x, y), (cx, _) in zip(R, C)]
+        core = Li[1:-3] + Ri[1:-3][::-1]
+        out += f'<path d="M' + " L".join(f"{x:.1f} {y:.1f}" for x, y in core) + f' Z" fill="{ink}"/>'
+        inlay = C[2:11]
+        out += f'<path d="M' + " L".join(f"{x:.1f} {y:.1f}" for x, y in inlay) + f'" fill="none" stroke="{acc}" stroke-width="1.8" stroke-linecap="round"/>'
+        tx, ty = C[-1]
+        out += f'<path d="M{tx - 2:.1f} {ty:.1f} L{tx + 5:.1f} {ty - 3 * sign:.1f} L{tx + 3:.1f} {ty + 2 * sign:.1f} Z" fill="{paper}" stroke="{ink}" stroke-width="1.8" stroke-linejoin="round"/>'
+        tips.append((tx + 2, ty))
+    (x1, y1), (x2, y2) = tips
+    out = f'<path d="M{x1:.1f} {y1:.1f} L{x2:.1f} {y2:.1f}" stroke="{ink}" stroke-width="1.6"/>' + out
+    # the riser and its wrapped grip
+    out += (f'<path d="M-8 -18 L4 -18 L7 -10 L7 10 L4 18 L-8 18 L-10 10 L-10 -10 Z" fill="{paper}" stroke="{ink}" stroke-width="2.6" stroke-linejoin="round"/>'
+            f'<path d="M-6 -9 L4 -9 L4 9 L-6 9 Z" fill="{ink}"/>'
+            f'<path d="M-6 -4.5 L4 -4.5 M-6 0 L4 0 M-6 4.5 L4 4.5" stroke="{paper}" stroke-width="1.3"/>'
+            f'<path d="M-3 -16 L1 -16 L1 -12 L-3 -12 Z M-3 12 L1 12 L1 16 L-3 16 Z" fill="{acc}"/>')
+    return out
+
+
 # El's weapons, each drawn along +x from where his hand holds it (x = 0); the year card picks one a day
 WEAPONS = {
     # the greatsword from El's avatar: a broad blade that flares toward a faceted point, cream edges around a
@@ -159,6 +196,27 @@ WEAPONS = {
         + "".join(f'<rect x="{4 + k * 8.4:.1f}" y="{-8 + r * 6}" width="6" height="4" rx="0.8" fill="{acc if (r, k) == (1, 9) else paper}"/>'
                   for r in range(3) for k in range(10))),
 }
+# the lineup, in order (the design board's weapon sheet shows them the same way)
+WEAPONS["greatbow"] = lambda ink, acc, paper: f'<g transform="rotate(90)">{_greatbow(ink, acc, paper)}</g>'
+# one a day, Monday to Sunday (the design board's arsenal shows them the same way)
+WEAPONS = {k: WEAPONS[k] for k in ("sword", "zweihander", "axe", "hammer", "halberd", "greatbow", "keyboard")}
+WEAPON_NAMES = {"sword": "greatsword", "zweihander": "zweihander", "axe": "greataxe", "hammer": "warhammer",
+                "halberd": "halberd", "greatbow": "greatbow", "keyboard": "keyboard"}
+# how he carries each one: laid back over the right shoulder, except the bow, held at the grip with its
+# limbs arching over the shoulder
+CARRY = {"greatbow": "translate(4 -80) rotate(-152) scale(0.85)"}
+
+
+# the running cape: three shapes with the same commands, so it ripples smoothly from one to the next
+RUN_CAPE = [
+    "M9 -90 C4 -95 -6 -94 -11 -88 C-34 -88 -62 -84 -92 -72 C-84 -66 -80 -62 -76 -54 C-64 -58 -56 -54 -50 -46 "
+    "C-38 -50 -28 -46 -16 -40 C-14 -58 -10 -76 2 -86 Z",
+    "M9 -90 C4 -95 -6 -94 -11 -88 C-36 -92 -66 -92 -98 -86 C-90 -78 -86 -72 -82 -64 C-70 -66 -62 -60 -54 -52 "
+    "C-42 -54 -30 -48 -16 -40 C-14 -58 -10 -76 2 -86 Z",
+    "M9 -90 C4 -95 -6 -94 -11 -88 C-32 -84 -58 -76 -86 -60 C-78 -56 -74 -50 -72 -42 C-60 -48 -52 -44 -46 -38 "
+    "C-36 -42 -26 -40 -16 -40 C-14 -58 -10 -76 2 -86 Z",
+]
+RUN_FOLD = ["M-14 -84 C-30 -80 -46 -72 -58 -58", "M-14 -84 C-32 -84 -50 -78 -64 -66", "M-14 -84 C-28 -78 -42 -66 -52 -52"]
 
 
 def el_runner(c, uid, weapon="sword"):
@@ -167,19 +225,20 @@ def el_runner(c, uid, weapon="sword"):
     ink, acc, paper = c["ink"], c["accent"], c["paper"]
     leg = ('<path d="M-5 0 L6 0 L7 -20 L5 -44 L-6 -44 L-5 -20 Z" fill="{f}"/>'
            '<path d="M-7 -5 L11 -5 L12 0 L-7 0 Z" fill="{f}"/>')
-    cape_a = "M-4 -86 C-20 -84 -34 -76 -46 -62 C-38 -60 -30 -62 -24 -58 C-30 -52 -36 -46 -40 -38 C-26 -42 -16 -52 -8 -60 Z"
-    cape_b = "M-4 -86 C-22 -86 -38 -80 -52 -70 C-44 -66 -36 -66 -30 -62 C-38 -56 -44 -48 -50 -42 C-32 -44 -18 -54 -8 -60 Z"
     torso = "M-11 -46 C-14 -62 -12 -80 -2 -90 L10 -90 C16 -82 16 -62 11 -46 Z"
     held = WEAPONS.get(weapon, WEAPONS["sword"])(ink, acc, paper)
     # laid back over the right shoulder, the business end up and behind him
-    sword = f'<g transform="translate(0 -84) rotate(-155)">{held}</g>'
+    sword = f'<g transform="{CARRY.get(weapon, "translate(0 -84) rotate(-155)")}">{held}</g>'
     arm = f'<path d="M4 -84 C8 -76 12 -74 17 -76" fill="none" stroke="{ink}" stroke-width="7" stroke-linecap="round"/>'
     hand = f'<circle cx="17" cy="-76" r="4.8" fill="{ink}"/>'
     return (
         f'<g class="{uid}bob">'
         f'<g transform="translate(0 -44)"><g class="{uid}legB"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
-        f'<path d="{cape_a}" fill="{acc}" stroke="{ink}" stroke-width="3" stroke-linejoin="round">'
-        f'<animate attributeName="d" dur="0.6s" repeatCount="indefinite" values="{cape_a};{cape_b};{cape_a}"/></path>'
+        # his cape, side-on: clasped at the collar, wrapped over the shoulder, then streaming long behind him
+        f'<path d="{RUN_CAPE[0]}" fill="{acc}" stroke="{ink}" stroke-width="3" stroke-linejoin="round">'
+        f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_CAPE + RUN_CAPE[:1])}"/></path>'
+        f'<path d="{RUN_FOLD[0]}" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.55">'
+        f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_FOLD + RUN_FOLD[:1])}"/></path>'
         f'{sword}'
         f'<path d="{torso}" fill="{ink}"/>'
         f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'

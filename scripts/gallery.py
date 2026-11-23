@@ -1,4 +1,4 @@
-"""The dense ASCII gallery: knight -> koi -> El waving -> greatsword -> campfire -> Merlin, looping.
+"""The dense ASCII gallery, one day on the quest: koi -> knight -> desk -> Merlin -> greatsword -> campfire -> El waving goodbye, looping.
 
 Each scene is drawn here as a grayscale vector picture (all original art), rasterised,
 and every cell of a 126 x 40 grid becomes a character by how dark it is. Parts marked
@@ -465,16 +465,79 @@ def merlin_text(f: int):
     return [(6, 12 + 2 * i, s, i == 0) for i, s in enumerate(lines[:shown])]
 
 
+# ---------------------------------------------------------------- scene: El at his desk
+
+DESK_CODE = ["const el = {", "  focus: 'max',", "  music: 'lofi, loud',", "  status: 'shipping',", "};"]
+
+
+def desk(f: int, p: Pen):
+    """El from behind at his desk, like the portfolio's hero: headphones on, code typing itself on the
+    monitor, steam off the mug and a few notes leaking out of the headphones."""
+    if not p.mask:
+        p.add(f'<rect width="{VW}" height="{VH}" fill="#ececec"/>')
+        p.add('<path d="M1500 0 L1896 0 L1896 640 Z" fill="#dcdcdc"/>')
+    # the desk
+    p.add(f'<rect x="0" y="720" width="{VW}" height="280" fill="{p.col("#c8c8c8")}"/>')
+    p.add(f'<rect x="0" y="712" width="{VW}" height="16" fill="{p.col("#222")}"/>')
+    # the monitor: dark frame, a blank screen the code types onto, stand
+    p.add(f'<rect x="500" y="150" width="720" height="470" rx="18" fill="{p.col("#1a1a1a")}"/>')
+    p.add(f'<rect x="530" y="180" width="660" height="400" fill="{p.col("#ffffff")}"/>')
+    p.add(f'<path d="M800 620 L920 620 L950 712 L770 712 Z" fill="{p.col("#2a2a2a")}"/>')
+    # the keyboard and mouse
+    p.add(f'<path d="M560 740 L1080 740 L1120 800 L520 800 Z" fill="{p.col("#333")}"/>')
+    for i in range(3):
+        p.add(f'<path d="M{580 - i * 12} {752 + i * 16} L{1090 + i * 10} {752 + i * 16}" stroke="{p.col("#777")}" stroke-width="5"/>')
+    # the mug, and its steam
+    p.add(f'<path d="M300 620 L400 620 L392 712 L308 712 Z" fill="{p.col("#f4f4f4")}" stroke="{p.col("#111")}" stroke-width="8"/>')
+    p.add(f'<path d="M400 640 C440 640 440 690 396 690" fill="none" stroke="{p.col("#111")}" stroke-width="8"/>')
+    for i, x in enumerate((330, 370)):
+        y0 = 600 - ((f * 22 + i * 60) % 140)
+        p.add(f'<path d="M{x} {y0 + 60} C{x - 20} {y0 + 40} {x + 20} {y0 + 20} {x} {y0}" fill="none" '
+              f'stroke="{p.col("#9a9a9a")}" stroke-width="10" stroke-linecap="round"/>')
+    # El, from behind: shoulders, then the same head as everywhere else (hair, headphones)
+    ink = p.col("#000")
+    p.add(f'<path d="M1240 1000 C1260 840 1360 760 1500 750 C1600 744 1680 770 1720 800 C1780 850 1810 930 1820 1000 Z" fill="{ink}"/>')
+    p.add(f'<path d="M1380 1000 C1400 890 1450 830 1520 810" fill="none" stroke="{p.col("#5a5a5a")}" stroke-width="22"/>')
+    p.add(f'<g transform="translate(1230 300) scale(3.1)"><path d="{HAIR}" fill="{ink}"/>'
+          f'<path d="{EAR}" fill="{p.col("#e6e6e6")}" stroke="{ink}" stroke-width="6"/>'
+          f'<path d="{BAND}" fill="none" stroke="{p.col("#e6e6e6")}" stroke-width="7" stroke-linecap="round"/></g>')
+    # music leaking out of the headphones
+    for i in range(3):
+        t = (f + i * 3) % 10
+        x, y = 1480 - t * 22 - i * 30, 520 - t * 26
+        if t < 8:
+            p.add(f'<g fill="{p.col("#555", True)}"><ellipse cx="{x}" cy="{y}" rx="16" ry="12" transform="rotate(-20 {x} {y})"/>'
+                  f'<rect x="{x + 12}" y="{y - 60}" width="6" height="60"/><path d="M{x + 12} {y - 60} l30 12 l0 10 l-30 -12 Z"/></g>')
+
+
+def desk_text(f: int):
+    """The code types itself onto the monitor, a line or so a frame; the status line is the hot one."""
+    budget = f * 7
+    out = []
+    for i, line in enumerate(DESK_CODE):
+        n = max(0, min(len(line), budget))
+        budget -= len(line)
+        if n:
+            out.append((38, 9 + i * 2, line[:n], i == 3))
+    done = sum(len(x) for x in DESK_CODE) <= f * 7
+    row = 9 + 2 * min(len(DESK_CODE) - 1, sum(1 for o in out) - 1 if out else 0)
+    col = 38 + (len(out[-1][2]) if out else 0)
+    if f % 2 == 0 or not done:
+        out.append((col, row, "_", True))
+    return out
+
+
 # ---------------------------------------------------------------- frames -> grid -> svg
 
-SCENES = [
+SCENES = [  # one day on the quest, ending with El waving goodbye to whoever's reading
     # file, caption, draw, text, frames, slots (frame index per step), step seconds
-    ("knight.txt", "rest between quests, then back to building.", knight, knight_text, 14, list(range(14)), 0.3),
     ("koi.txt", "swim upstream long enough and you become a dragon.", koi, None, 12, list(range(12)) * 2, 0.22),
-    ("el.txt", "hi, it's El. thanks for dropping by.", el, el_text, 12, list(range(12)) + list(range(4, 12)), 0.24),
+    ("knight.txt", "rest between quests, then back to building.", knight, knight_text, 14, list(range(14)), 0.3),
+    ("desk.txt", "headphones on. the world can wait.", desk, desk_text, 12, list(range(12)) * 2, 0.22),
+    ("merlin.txt", "merlin.exe: a desk companion that talks back. mostly sass.", merlin, merlin_text, 12, list(range(12)) * 2, 0.2),
     ("greatsword.txt", "planted for now. the quest picks up tomorrow.", greatsword, greatsword_text, 10, list(range(10)) * 2, 0.2),
     ("campfire.txt", "save point reached. progress saved.", campfire, campfire_text, 8, list(range(8)) * 3, 0.2),
-    ("merlin.txt", "merlin.exe: a desk companion that talks back. mostly sass.", merlin, merlin_text, 12, list(range(12)) * 2, 0.2),
+    ("el.txt", "that's the tour. thanks for dropping by, see you next quest.", el, el_text, 12, list(range(12)) + list(range(4, 12)), 0.24),
 ]
 
 
@@ -570,8 +633,9 @@ def svg_for(theme: str, frames, css) -> str:
         f".cap{{font-size:13px;font-weight:700}}" + css
     )
     label = ("Looping dense ASCII gallery: a knight sits on a rock hugging his planted sword while a quill writes "
-             "rest, write, train, repeat; two koi circle a pond; El waves from his rock; his greatsword planted in the rock "
-             "with his cape snapping in the wind; a campfire save point; Merlin the flaming skull mage, talking.")
+             "two koi circle a pond at dawn; rest, write, train, repeat; El at his desk with his headphones on, code typing "
+             "itself; Merlin the flaming skull mage, talking; his greatsword planted in the rock while he gets coffee; "
+             "a campfire save point; and El waving goodbye from his rock.")
     return doc(W, h + 14, body, label, style, mono=True)
 
 

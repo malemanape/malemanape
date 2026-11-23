@@ -11,7 +11,6 @@ Only needs fontTools (pip install fonttools).
 from __future__ import annotations
 
 import datetime as dt
-import hashlib
 import json
 import math
 import os
@@ -23,7 +22,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art import WEAPONS, el_runner, runner_css
+from art import WEAPON_NAMES, WEAPONS, el_runner, runner_css
 from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, panel, text, text_width, write
 
 W = 830
@@ -369,16 +368,11 @@ def streak_card(theme, d):
 
 
 def weapon_of_the_day(cfg: dict) -> str:
-    """Same weapon all day (in your time zone), a new one tomorrow; the keyboard turns up on about 1 day in 10."""
-    tz = ZoneInfo(cfg.get("timezone", "Asia/Manila"))
-    h = int(hashlib.sha1(dt.datetime.now(tz).date().isoformat().encode()).hexdigest(), 16)
-    if h % 10 == 0:
-        return "keyboard"
-    common = [w for w in WEAPONS if w != "keyboard"]
-    return common[(h // 10) % len(common)]
+    """One weapon per weekday, in your time zone: greatsword on Monday through the keyboard on Sunday."""
+    return list(WEAPONS)[dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).weekday()]
 
 
-def year_card(theme, d, weapon="sword"):
+def year_card(theme, d, weapon="sword", cfg=None):
     c = PALETTES[theme]
     days = d["days"]
     first = dt.date.fromisoformat(days[0][0])
@@ -408,44 +402,64 @@ def year_card(theme, d, weapon="sword"):
         if day.day <= 7 and day.month not in seen and i // 7 < weeks - 2:
             seen.add(day.month)
             body += text(day.strftime("%b"), gx + (i // 7) * (cs + gap), gy + 7 * (cs + gap) + 16, 11, c["muted"], mono=True)
-    # El runs side-on along the top, greatsword on his shoulder, clearing the fog behind him.
-    # At the last week he vanishes in a burst, the fog rolls back in, and he pops in at the start.
+    # El runs side-on along the top into a headwind, greatsword on his shoulder, clearing the fog behind him.
+    # A portal opens past the last week; he runs into it and comes out of a second one at the start.
     T, ground = 14, gy - 6
-    ex = gx + 16              # his feet at the start, over the first week
-    track = gw - 12           # ...and at the end, over the last
-    ftrack = gw + 4           # the fog's left edge ends just past the grid
+    pin, pout = gx - 18, gx + gw + 16       # the two portals: in at the start, out at the end
+    x0, x1 = pin - 30, pout + 75            # he starts hidden behind the start portal and runs until he's fully through
+    run = 90                                # % of the loop he spends running; the rest he's between portals
+    fx0 = pin + 6                           # the fog's left edge trails just behind his feet
     body += (f'<line x1="{gx - 4}" y1="{ground}" x2="{gx + gw + 4}" y2="{ground}" stroke="{c["ink"]}" stroke-width="2" '
              f'stroke-dasharray="2 6" opacity="0.35"/>')
 
-    def burst(cls, px):
-        cy = ground - 22
-        rays = "".join(f'<path d="M{px + 9 * math.cos(k * math.pi / 4):.1f} {cy + 9 * math.sin(k * math.pi / 4):.1f} '
-                       f'L{px + 17 * math.cos(k * math.pi / 4):.1f} {cy + 17 * math.sin(k * math.pi / 4):.1f}" '
-                       f'stroke="{c["accent"]}" stroke-width="3" stroke-linecap="round"/>' for k in range(8))
-        return (f'<g class="{cls}" style="transform-origin:{px}px {cy}px">{rays}'
-                f'<circle cx="{px}" cy="{cy}" r="6" fill="none" stroke="{c["ink"]}" stroke-width="2"/></g>')
+    def portal(cls, px):
+        cy, ry = ground - 30, 34
+        swirl = "".join(f'<path d="M0 {-r} A{r} {r} 0 0 1 {r * 0.87:.1f} {r * 0.5:.1f}" fill="none" stroke="{col}" '
+                        f'stroke-width="{sw}" stroke-linecap="round"/>'
+                        for r, col, sw in ((ry - 8, c["accent"], 4), (ry - 17, c["ink"], 2.5), (ry - 25, c["accent"], 3)))
+        return (f'<g transform="translate({px} {cy})"><g class="{cls}">'
+                f'<ellipse rx="13" ry="{ry}" fill="{c["accent"]}" opacity="0.22"/>'
+                f'<g transform="scale(0.36 1)"><g class="spin">{swirl}'
+                f'<g transform="rotate(180)">{swirl}</g></g></g>'
+                f'<ellipse rx="13" ry="{ry}" fill="none" stroke="{c["ink"]}" stroke-width="3"/></g></g>')
+
+    # the headwind: streaks blowing in from where he's heading
+    winds = ""
+    for i, (y, ln, dur, dl, curl) in enumerate(((ground - 62, 34, 1.7, 0.0, False), (ground - 44, 22, 1.3, 0.5, False),
+                                                 (ground - 28, 40, 1.9, 1.1, True), (ground - 12, 18, 1.1, 0.3, False),
+                                                 (ground - 52, 26, 1.5, 0.9, True), (ground - 20, 30, 1.6, 1.4, False))):
+        tail = f" c-9 0 -9 -11 -1 -11" if curl else ""
+        winds += (f'<path class="w" style="animation-duration:{dur}s;animation-delay:-{dl}s" '
+                  f'd="M{W - 10} {y} h-{ln}{tail}" fill="none" stroke="{c["ink"]}" stroke-width="2" stroke-linecap="round"/>')
 
     body += (f'<clipPath id="yc"><rect x="3" y="29" width="{W - 20}" height="{h - 32}"/></clipPath>'
+             f'<clipPath id="yp"><rect x="{pin}" y="0" width="{pout - pin}" height="{ground + 6}"/></clipPath>'
              f'<g clip-path="url(#yc)">'
-             f'<g class="fog"><rect x="{ex + 10}" y="{gy - 2}" width="{gw + 70}" height="{gh + 2}" fill="{c["paper"]}" opacity="0.8"/></g>'
-             f'<g class="elmove"><g transform="translate({ex} {ground})"><g class="elpop">'
+             f'<g class="fog"><rect x="{fx0}" y="{gy - 2}" width="{gw + 90}" height="{gh + 2}" fill="{c["paper"]}" opacity="0.8"/></g>'
+             f'<g opacity="0.28">{winds}</g>'
+             f'<g clip-path="url(#yp)"><g class="elmove"><g transform="translate({x0} {ground})">'
              f'<g transform="scale(0.4)">{el_runner(c, "e", weapon)}</g></g></g></g>'
-             + burst("pEnd", ex + track + 2) + burst("pStart", ex + 2) + '</g>')
+             + portal("pIn", pin) + portal("pOut", pout) + '</g>')
+    dx, fdx = x1 - x0, x1 - x0 - 40
     css = (runner_css("e")
            + f".elmove,.fog{{animation:{T}s linear infinite}}.elmove{{animation-name:move}}.fog{{animation-name:fog}}"
-           f"@keyframes move{{0%{{transform:translateX(0)}}84%,89%{{transform:translateX({track}px)}}89.1%,100%{{transform:translateX(0)}}}}"
-           f"@keyframes fog{{0%{{transform:translateX(0);opacity:1}}84%{{transform:translateX({ftrack}px);opacity:1}}"
-           f"89%{{transform:translateX({ftrack}px);opacity:0}}89.1%{{transform:translateX(0);opacity:0}}97%,100%{{transform:translateX(0);opacity:1}}}}"
-           f".elpop{{transform-box:fill-box;transform-origin:50% 100%;animation:pop {T}s linear infinite}}"
-           f"@keyframes pop{{0%,84%{{transform:scale(1)}}86%{{transform:scale(1.15,0.85)}}88.5%,92%{{transform:scale(0)}}"
-           f"95%{{transform:scale(1.25)}}97%,100%{{transform:scale(1)}}}}"
-           f".pEnd,.pStart{{opacity:0;animation:{T}s ease-out infinite}}.pEnd{{animation-name:pEnd}}.pStart{{animation-name:pStart}}"
-           f"@keyframes pEnd{{0%,86%{{opacity:0;transform:scale(0.3)}}87%{{opacity:1;transform:scale(0.6)}}91%,100%{{opacity:0;transform:scale(1.6)}}}}"
-           f"@keyframes pStart{{0%,91%{{opacity:0;transform:scale(0.3)}}92%{{opacity:1;transform:scale(0.6)}}96%,100%{{opacity:0;transform:scale(1.6)}}}}"
-           f"@media (prefers-reduced-motion:reduce){{.elmove{{transform:translateX({track}px)}}.fog{{opacity:0}}}}")
-    body += text(f"today's weapon: {weapon}", W - 14 - 18, h - 12, 10.5, c["muted"], mono=True, anchor="end")
+           f"@keyframes move{{0%{{transform:translateX(0)}}{run}%,100%{{transform:translateX({dx}px)}}}}"
+           f"@keyframes fog{{0%{{transform:translateX(0);opacity:1}}{run - 4}%{{transform:translateX({fdx}px);opacity:1}}"
+           f"{run + 3}%{{transform:translateX({fdx}px);opacity:0}}{run + 3.1}%{{transform:translateX(0);opacity:0}}100%{{transform:translateX(0);opacity:1}}}}"
+           # the portals open just before he needs them and close once he's through
+           f".pIn,.pOut{{transform-box:fill-box;transform-origin:50% 50%;animation:{T}s ease-in-out infinite}}"
+           f".pIn{{animation-name:pIn}}.pOut{{animation-name:pOut}}"
+           f"@keyframes pIn{{0%,6%{{transform:scale(1)}}12%,94%{{transform:scale(0,0.6)}}99%,100%{{transform:scale(1)}}}}"
+           f"@keyframes pOut{{0%,66%{{transform:scale(0,0.6)}}73%,{run + 1}%{{transform:scale(1)}}{run + 6}%,100%{{transform:scale(0,0.6)}}}}"
+           f".spin{{transform-box:fill-box;transform-origin:50% 50%;animation:spin 1.4s linear infinite}}"
+           f"@keyframes spin{{to{{transform:rotate(-360deg)}}}}"
+           f".w{{animation:wind linear infinite}}"
+           f"@keyframes wind{{0%{{transform:translateX(0);opacity:0}}12%{{opacity:1}}85%{{opacity:1}}100%{{transform:translateX(-{W - 40}px);opacity:0}}}}"
+           f"@media (prefers-reduced-motion:reduce){{.elmove{{transform:translateX({dx // 2}px)}}.fog,.w{{opacity:0}}}}")
+    day = dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).strftime("%A").lower() if cfg else "today"
+    body += text(f"{day}'s weapon: {WEAPON_NAMES.get(weapon, weapon)}", W - 14 - 18, h - 12, 10.5, c["muted"], mono=True, anchor="end")
     label = (f"Contribution graph for the past year, {d['total']} contributions. "
-             f"El runs across it with a {weapon} on his shoulder, clearing the fog.")
+             f"El runs across it into the wind with his {WEAPON_NAMES.get(weapon, weapon)} on his shoulder, clearing the fog, and loops back through a portal.")
     return doc(W, h + 14, body, label, css)
 
 
@@ -586,7 +600,7 @@ if __name__ == "__main__":
     for theme in THEMES:
         write("stats", theme, stats_card(theme, d), "generated")
         write("streak", theme, streak_card(theme, d), "generated")
-        write("year", theme, year_card(theme, d, weapon), "generated")
+        write("year", theme, year_card(theme, d, weapon, cfg), "generated")
         write("ticker", theme, ticker(theme, d), "generated")
         for i, repo in enumerate(d["cards"]):
             write(f"repo-{i + 1}", theme, repo_card(theme, repo, i, cfg["user"]), "generated")

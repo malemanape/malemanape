@@ -15,28 +15,28 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 
 *ἀρετή (arete): excellence, the full realization of one's potential. The idea I build around.*
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=6e8944eb"><img src="assets/about-light.svg?v=b5bd6a70" alt="About El" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=15ddbac9"><img src="assets/about-light.svg?v=59bb29c9" alt="About El" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg?v=8ac44398"><img src="assets/h-stack-light.svg?v=9d73c49c" alt="Stack" width="830"></picture></h3>
-<p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stack-dark.svg?v=334e95ba"><img src="generated/stack-light.svg?v=e0d31f52" alt="Stack: the languages and tools I build with" width="830"></picture></a></p>
+<p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stack-dark.svg?v=f89b9965"><img src="generated/stack-light.svg?v=e2105dfb" alt="Stack: the languages and tools I build with" width="830"></picture></a></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stats-dark.svg?v=3360faf7"><img src="assets/h-stats-light.svg?v=a9f79ca3" alt="Stats" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=e183b985"><img src="generated/stats-light.svg?v=021ad034" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=0c07f513"><img src="generated/streak-light.svg?v=734e4d14" alt="Contribution streak" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=53480dac"><img src="generated/year-light.svg?v=0e8ba5ab" alt="Contributions over the past year" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=a8332dcf"><img src="generated/stats-light.svg?v=51c9824a" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=81143b2b"><img src="generated/streak-light.svg?v=8b654b20" alt="Contribution streak" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=b231510b"><img src="generated/year-light.svg?v=87ced17b" alt="Contributions over the past year" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-gallery-dark.svg?v=fa0ee676"><img src="assets/h-gallery-light.svg?v=df6e154a" alt="The gallery" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg?v=7e441305"><img src="assets/gallery-light.svg?v=8314353e" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-activity-dark.svg?v=4f0ceaf0"><img src="assets/h-activity-light.svg?v=751602b1" alt="Recent activity" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=626605e2"><img src="generated/ticker-light.svg?v=bce10a83" alt="Latest pushes" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=4996a343"><img src="generated/ticker-light.svg?v=7a015553" alt="Latest pushes" width="830"></picture></p>
 <p align="center">
-  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=427f0daf"><img src="generated/repo-1-light.svg?v=f84c3a06" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=4fe00a90"><img src="generated/repo-1-light.svg?v=b281db4c" alt="my-portfolio" width="412"></picture></a>
   <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=8d3c0995"><img src="generated/repo-2-light.svg?v=935074ff" alt="Ka-dugo" width="412"></picture></a>
 </p>
 <p align="center">
-  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=f26c110b"><img src="generated/repo-3-light.svg?v=f45eb513" alt="ThriftBite" width="412"></picture></a>
-  <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg?v=c9779553"><img src="generated/repo-4-light.svg?v=61ff5182" alt="webapp-secondserve" width="412"></picture></a>
+  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=f9fc90cc"><img src="generated/repo-3-light.svg?v=8f5d686c" alt="ThriftBite" width="412"></picture></a>
+  <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg?v=2dc2798d"><img src="generated/repo-4-light.svg?v=244c1e4e" alt="webapp-secondserve" width="412"></picture></a>
 </p>
 
 

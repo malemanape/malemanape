@@ -3,7 +3,8 @@
     python scripts/live.py            # real data: needs PROFILE_TOKEN or GITHUB_TOKEN in the environment
     python scripts/live.py --sample   # made-up numbers, for previewing without a token
 
-Writes generated/{stats,streak,year}-{light,dark}.svg and generated/repo-<n>-{light,dark}.svg.
+Writes generated/{stats,streak,year}-{light,dark}.svg, generated/repo-<n>-{light,dark}.svg
+and generated/building.json (which repo each card shows, for readme.py).
 Only needs fontTools (pip install fonttools).
 """
 from __future__ import annotations
@@ -20,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from art import BODY, CAPE_B, HAIR, LEGS
-from lib.svgkit import MONO_ADV, PALETTES, THEMES, config, doc, dots, panel, text, text_width, write
+from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, panel, text, text_width, write
 
 W = 830
 NOW = dt.datetime.now(dt.timezone.utc)
@@ -41,6 +42,10 @@ query($login: String!) {
     repositoriesContributedTo(contributionTypes: [COMMIT, PULL_REQUEST, ISSUE, REPOSITORY]) { totalCount }
     repositories(first: 100, ownerAffiliations: OWNER, isFork: false) {
       nodes { stargazerCount languages(first: 10, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } }
+    }
+    recent: repositories(first: 12, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC,
+                         orderBy: {field: PUSHED_AT, direction: DESC}) {
+      nodes { name isArchived }
     }
   }
 }
@@ -79,22 +84,49 @@ def fetch(cfg: dict, token: str) -> dict:
         for e in repo["languages"]["edges"]:
             n = e["node"]["name"]
             langs.setdefault(n, [0, e["node"]["color"] or "#8b949e"])[0] += e["size"]
-    # featured repos, one aliased query; "owner/name" or just "name" (yours)
+    # the repos to look up: your pins, then your public repos by latest push
+    b = cfg["building"]
+    pins = [f for f in b.get("pin", []) if not f.get("upcoming")]
+    skip = {x.lower() for x in b.get("skip", [])} | {user.lower()}
+    pinned = {f["repo"].rpartition("/")[2].lower() for f in b.get("pin", [])}
+    recent = [r["name"] for r in d["recent"]["nodes"]
+              if not r["isArchived"] and r["name"].lower() not in skip | pinned]
+    wanted = [f["repo"] for f in pins] + recent[:8]
     parts = []
-    for i, f in enumerate(cfg["featured"]):
-        if f.get("upcoming"):
-            continue
-        owner, _, name = f["repo"].rpartition("/")
+    for i, full in enumerate(wanted):
+        owner, _, name = full.rpartition("/")
         parts.append(f'r{i}: repository(owner: {json.dumps(owner or user)}, name: {json.dumps(name)}) {{{REPO_FIELDS}}}')
-    repos = gql("query {" + "\n".join(parts) + "}", {}, token) if parts else {}
+    found = gql("query {" + "\n".join(parts) + "}", {}, token) if parts else {}
+    looked_up = [found.get(f"r{i}") for i in range(len(wanted))]
     return dict(
         days=[(x["date"], x["contributionCount"]) for x in days],
         total=cc["contributionCalendar"]["totalContributions"],
         commits=cc["totalCommitContributions"] + cc["restrictedContributionsCount"],
         prs=d["pullRequests"]["totalCount"], issues=d["issues"]["totalCount"],
         contributed=d["repositoriesContributedTo"]["totalCount"], stars=stars,
-        langs=langs, repos=[repos.get(f"r{i}") for i in range(len(cfg["featured"]))],
+        langs=langs, cards=pick_cards(cfg, looked_up[:len(pins)], looked_up[len(pins):]),
     )
+
+
+def pick_cards(cfg: dict, pinned: list, recent: list) -> list[tuple[dict | None, dict]]:
+    """Cards for "currently building": (repo or None, meta). Pins first, then the latest
+    pushes fill the free slots, and "coming soon" pins go last so live work leads."""
+    b = cfg["building"]
+    notes = {k.lower(): v for k, v in b.get("notes", {}).items()}
+    pins = b.get("pin", [])
+    live_pins = [f for f in pins if not f.get("upcoming")]
+    soon = [f for f in pins if f.get("upcoming")]
+    free = max(0, b.get("slots", 4) - len(pins))
+    note = lambda f: {**notes.get(f["repo"].rpartition("/")[2].lower(), {}), **f}
+    cards = [(r, note(f)) for r, f in zip(pinned, live_pins)]
+    for repo in recent:
+        if len(cards) >= len(live_pins) + free:
+            break
+        if not repo:
+            continue
+        meta = {"repo": repo["nameWithOwner"], **notes.get(repo["name"].lower(), {})}
+        cards.append((repo, meta))
+    return cards + [(None, note(f)) for f in soon]
 
 
 def sample(cfg: dict) -> dict:
@@ -110,22 +142,22 @@ def sample(cfg: dict) -> dict:
         days[-i] = (days[-i][0], max(1, days[-i][1]))
     langs = {"Java": [34, "#b07219"], "TypeScript": [22, "#3178c6"], "Python": [18, "#3572A5"],
              "JavaScript": [12, "#f1e05a"], "Elixir": [8, "#6e4a7e"], "CSS": [6, "#663399"]}
-    msgs = ["feat(api): pickup time slots", "chunking, attempt #4", "refactor: sockets to services", "feat: dark mode synced everywhere"]
-    langs_r = [("TypeScript", "#3178c6"), ("Python", "#3572A5"), ("Java", "#b07219"), ("Astro", "#ff5a03")]
-    repos = []
-    for i, f in enumerate(cfg["featured"]):
-        owner, _, name = f["repo"].rpartition("/")
-        if f.get("upcoming"):
-            repos.append(None)
-            continue
-        repos.append(dict(name=name, nameWithOwner=f"{owner or cfg['user']}/{name}", description=None,
-                          url=f"https://github.com/{owner or cfg['user']}/{name}", isPrivate=False,
-                          owner={"login": owner or cfg["user"]},
-                          pushedAt=(NOW - dt.timedelta(hours=[2, 26, 75, 120][i % 4])).isoformat(),
-                          primaryLanguage={"name": langs_r[i % 4][0], "color": langs_r[i % 4][1]},
-                          defaultBranchRef={"target": {"messageHeadline": msgs[i % 4]}}))
+    # (repo, language, hours since the push, latest commit)
+    fake = [("Merlin", ("TypeScript", "#3178c6"), 2, "fix(fire): steadier flame flicker"),
+            ("my-portfolio", ("Astro", "#ff5a03"), 9, "feat(aura): El splits the rock"),
+            ("Ka-dugo", ("JavaScript", "#f1e05a"), 30, "docs: README with screenshots"),
+            ("ThriftBite", ("Java", "#b07219"), 50, "docs: rewrite the README as a front page"),
+            ("webapp-secondserve", ("Python", "#3572A5"), 120, "feat(api): pickup time slots")]
+    recent = [dict(name=n, nameWithOwner=f"{cfg['user']}/{n}", description=None, url=f"https://github.com/{cfg['user']}/{n}",
+                   isPrivate=False, owner={"login": cfg["user"]}, pushedAt=(NOW - dt.timedelta(hours=h)).isoformat(),
+                   primaryLanguage={"name": lang, "color": col},
+                   defaultBranchRef={"target": {"history": {"nodes": [{"messageHeadline": msg, "parents": {"totalCount": 1}}]}}})
+              for n, (lang, col), h, msg in fake]
+    pins = [f for f in cfg["building"].get("pin", []) if not f.get("upcoming")]
+    pinned = [next((r for r in recent if r["name"] == f["repo"].rpartition("/")[2]), None) for f in pins]
+    rest = [r for r in recent if r not in pinned]
     return dict(days=days, total=sum(c for _, c in days), commits=412, prs=37, issues=12, contributed=6, stars=9,
-                langs=langs, repos=repos)
+                langs=langs, cards=pick_cards(cfg, pinned, rest))
 
 
 # ---------------------------------------------------------------- numbers
@@ -310,19 +342,19 @@ def year_card(theme, d):
     return doc(W, h + 14, body, label, css)
 
 
-def repo_card(theme, repo, featured, i, user):
+def repo_card(theme, repo, meta, i, user):
     c = PALETTES[theme]
     w, h = 404, 176
     shadow = c["accent"] if i == 0 else c["ink"]
     body = sh(c, 0, 0, w, h, shadow)
     body += f'<rect x="1.25" y="1.25" width="{w - 2.5}" height="{h - 2.5}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
-    if featured.get("upcoming") or not repo:
-        name = featured["repo"].rpartition("/")[2]
-        desc, lang, color, msg = featured.get("fallback", ""), "", c["muted"], ""
-        when, tag = ("repo coming soon", "Soon") if featured.get("upcoming") else ("repo not found", "Repo")
+    if meta.get("upcoming") or not repo:
+        name = meta["repo"].rpartition("/")[2]
+        desc, lang, color, msg = meta.get("fallback", ""), "", c["muted"], ""
+        when, tag = ("repo coming soon", "Soon") if meta.get("upcoming") else ("repo not found", "Repo")
     else:
         name = repo["name"]
-        desc = repo.get("description") or featured.get("fallback", "")
+        desc = repo.get("description") or meta.get("fallback", "")
         pl = repo.get("primaryLanguage") or {}
         lang, color = pl.get("name", ""), pl.get("color") or c["muted"]
         tgt = ((repo.get("defaultBranchRef") or {}).get("target") or {})
@@ -331,7 +363,7 @@ def repo_card(theme, repo, featured, i, user):
         real = [n for n in commits if (n.get("parents") or {}).get("totalCount", 1) <= 1]
         msg = (real or commits or [{}])[0].get("messageHeadline", "") or tgt.get("messageHeadline", "")
         when = ago(repo["pushedAt"]) if repo.get("pushedAt") else ""
-        tag = featured.get("tag") or ("Private" if repo.get("isPrivate") else ("Team" if repo["owner"]["login"].lower() != user.lower() else "Public"))
+        tag = meta.get("tag") or ("Private" if repo.get("isPrivate") else ("Team" if repo["owner"]["login"].lower() != user.lower() else "Public"))
     name_s = fit(name, 16, w - 120, wght=700)
     body += text(name_s, 18, 32, 16, c["accent"], wght=700)
     tx = 18 + text_width(name_s, 16, 700) + 10
@@ -340,7 +372,7 @@ def repo_card(theme, repo, featured, i, user):
     body += text(tag, tx + tw / 2, 31.5, 11.5, c["muted"], wght=500, anchor="middle")
     for j, line in enumerate(wrap(desc, 13, w - 36, 2, wght=400)):
         body += text(line, 18, 60 + j * 19, 13, c["ink"], wght=400)
-    if not msg and featured.get("upcoming"):
+    if not msg and meta.get("upcoming"):
         body += f'<rect x="18" y="98" width="{w - 36}" height="26" fill="none" stroke="{c["ink"]}" stroke-width="2" stroke-dasharray="6 5"/>'
         body += text("$ git init  # soon", 28, 115.5, 11.5, c["muted"], mono=True)
     if msg:
@@ -354,10 +386,19 @@ def repo_card(theme, repo, featured, i, user):
     if lang:
         body += f'<circle cx="24" cy="{y - 4}" r="5.5" fill="{color}"/>' + text(lang, 36, y, 12, c["muted"], wght=500)
     rx = 36 + (text_width(lang, 12, 500) + 18 if lang else -18)
-    body += text(featured.get("role", ""), rx, y, 12, c["muted"], wght=500)
+    body += text(meta.get("role", ""), rx, y, 12, c["muted"], wght=500)
     body += text(when, w - 18, y, 12, c["muted"], wght=500, anchor="end")
-    label = f"{name} ({tag}): {desc} {lang}. {featured.get('role', '')}. {when}. Latest commit: {msg}"
-    return doc(w + 8, h + 8, body, label)
+    css = ""
+    if repo and repo.get("pushedAt") and NOW - dt.datetime.fromisoformat(repo["pushedAt"].replace("Z", "+00:00")) < dt.timedelta(hours=24):
+        # pushed in the last day: a pulsing LIVE dot before the time
+        lx = w - 18 - text_width(when, 12, 500) - 12
+        body += (f'<circle class="ping" cx="{lx:.1f}" cy="{y - 4}" r="4.5" fill="none" stroke="{c["accent"]}" stroke-width="2"/>'
+                 f'<circle cx="{lx:.1f}" cy="{y - 4}" r="4.5" fill="{c["accent"]}"/>')
+        css = (f".ping{{transform-box:fill-box;transform-origin:center;animation:ping 1.6s ease-out infinite}}"
+               f"@keyframes ping{{from{{transform:scale(1);opacity:.9}}to{{transform:scale(2.6);opacity:0}}}}")
+        when = "live, " + when
+    label = f"{name} ({tag}): {desc} {lang}. {meta.get('role', '')}. {when}. Latest commit: {msg}"
+    return doc(w + 8, h + 8, body, label, css)
 
 
 if __name__ == "__main__":
@@ -373,7 +414,11 @@ if __name__ == "__main__":
         write("stats", theme, stats_card(theme, d), "generated")
         write("streak", theme, streak_card(theme, d), "generated")
         write("year", theme, year_card(theme, d), "generated")
-        for i, (repo, f) in enumerate(zip(d["repos"], cfg["featured"])):
-            write(f"repo-{i + 1}", theme, repo_card(theme, repo, f, i, cfg["user"]), "generated")
+        for i, (repo, meta) in enumerate(d["cards"]):
+            write(f"repo-{i + 1}", theme, repo_card(theme, repo, meta, i, cfg["user"]), "generated")
+    # readme.py links the cards from this list, since the repos change from run to run
+    (ROOT / "generated" / "building.json").write_text(json.dumps(
+        [{"repo": m["repo"] if "/" in m["repo"] else f"{cfg['user']}/{m['repo']}", "upcoming": bool(m.get("upcoming"))}
+         for _, m in d["cards"]], indent=2) + "\n", encoding="utf-8")
     cur, longest = streaks(d["days"])
-    print(f"drew cards: {d['total']} contributions, streak {cur} (best {longest}), aura {aura(d)}, {len(d['repos'])} repos")
+    print(f"drew cards: {d['total']} contributions, streak {cur} (best {longest}), aura {aura(d)}, {len(d['cards'])} repo cards: " + ", ".join(m["repo"] for _, m in d["cards"]))

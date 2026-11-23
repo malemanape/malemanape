@@ -257,7 +257,7 @@ def segs(c, x, y, filled, n=10, seg=11.0, gap=3.0, h=8, color=None):
 
 def stats_card(theme, d):
     c = PALETTES[theme]
-    pw, ph = 404, 212
+    pw, ph = 400, 232  # two panels + the gap + a 6px shadow must fit inside W
     # left: aura rank, how close the next one is, and the numbers behind it
     body = sh(c, 0, 0, pw, ph, c["accent"]) + panel_plain(c, 0, 0, pw, ph, "~/el/power-level")
     g, title, prog, need, nxt = rank(d)
@@ -271,15 +271,26 @@ def stats_card(theme, d):
     body += text(title, 138, 88, 28, c["ink"], wght=700, wdth=70)
     body += segs(c, 138, 100, round(prog * 10), seg=13, gap=3.5, h=9, color=c["accent"])
     body += text(f"{need:,} pts to {nxt}" if nxt else "Max rank. Keep it", 138, 126, 11.5, c["muted"], wght=500)
-    stats = [(d["commits"], "COMMITS"), (d["prs"], "PRS"), (d["issues"], "ISSUES"), (d["stars"], "STARS"), (d["contributed"], "REPOS")]
-    tw = (pw - 6) / len(stats)
-    body += f'<rect x="3" y="146" width="{pw - 6}" height="{ph - 149}" fill="{c["ink"]}"/>'
-    for i, (v, k) in enumerate(stats):
-        cx = 3 + tw * i + tw / 2
-        if i:
-            body += f'<line x1="{3 + tw * i:.1f}" y1="154" x2="{3 + tw * i:.1f}" y2="{ph - 11}" stroke="{c["card"]}" stroke-width="1" opacity="0.25"/>'
-        body += text(f"{v:,}", cx, 182, 24, c["on_ink_accent"] if i == 0 else c["card"], wght=700, wdth=70, anchor="middle")
-        body += text(k, cx, 199, 9, c["card"], mono=True, bold=True, ls=0.5, anchor="middle", extra=' opacity="0.75"')
+    # the numbers, in two labelled groups
+    groups = [("PAST YEAR", [(d["commits"], "COMMITS"), (d["prs"], "PULL REQS"), (d["issues"], "ISSUES")]),
+              ("AROUND GITHUB", [(d["stars"], "STARS"), (d["contributed"], "OTHER REPOS")])]
+    n = sum(len(g) for _, g in groups)
+    tw = (pw - 6) / n
+    top = 146
+    body += f'<rect x="3" y="{top}" width="{pw - 6}" height="{ph - top - 3}" fill="{c["ink"]}"/>'
+    i = 0
+    for gi, (title_g, items) in enumerate(groups):
+        gx = 3 + tw * i
+        if gi:
+            body += f'<line x1="{gx:.1f}" y1="{top + 10}" x2="{gx:.1f}" y2="{ph - 12}" stroke="{c["card"]}" stroke-width="2" opacity="0.5"/>'
+        body += text(title_g, gx + 14, top + 20, 9, c["on_ink_accent"], mono=True, bold=True, ls=1)
+        for v, k in items:
+            cx = 3 + tw * i + tw / 2
+            if i and items[0][1] != k:
+                body += f'<line x1="{3 + tw * i:.1f}" y1="{top + 34}" x2="{3 + tw * i:.1f}" y2="{ph - 14}" stroke="{c["card"]}" stroke-width="1" opacity="0.2"/>'
+            body += text(f"{v:,}", cx, top + 58, 26, c["card"], wght=700, wdth=70, anchor="middle")
+            body += text(k, cx, top + 76, 8.5, c["card"], mono=True, bold=True, ls=0.5, anchor="middle", extra=' opacity="0.7"')
+            i += 1
     # right: languages as power bars, with their logos
     x0 = pw + 22
     body += sh(c, x0, 0, pw, ph, c["ink"]) + panel_plain(c, x0, 0, pw, ph, "~/el/languages")
@@ -288,7 +299,7 @@ def stats_card(theme, d):
     lead = top[0][1][0] / total if top else 1
     L = stack_logos()
     for i, (n, (v, col)) in enumerate(top):
-        y = 56 + i * 31
+        y = 58 + i * 34
         share = v / total
         lg = L.get(n)
         if lg:

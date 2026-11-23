@@ -44,9 +44,41 @@ def el_on_rock(c: dict, uid: str) -> str:
 
 # ---------------------------------------------------------------- El running, side-on
 
-def el_runner(c, uid):
+def _grip(ink, acc):
+    return (f'<path d="M-24 -2.6 L-2 -2.6 L-2 2.6 L-24 2.6 Z" fill="{ink}"/>'
+            f'<circle cx="-27" cy="0" r="4.2" fill="{acc}" stroke="{ink}" stroke-width="2"/>')
+
+
+def _haft(ink, x0, x1, r=2.6):
+    return f'<path d="M{x0} -{r} L{x1} -{r} L{x1} {r} L{x0} {r} Z" fill="{ink}"/>'
+
+
+# El's weapons, each drawn along +x from where his hand holds it (x = 0); the year card picks one a day
+WEAPONS = {
+    "sword": lambda ink, acc, paper: (
+        _grip(ink, acc)
+        + f'<path d="M-3 -14 L3 -14 L3 14 L-3 14 Z" fill="{ink}"/>'
+        f'<path d="M3 -9 L90 -9 L104 0 L90 9 L3 9 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        f'<path d="M10 0 L84 0" stroke="{acc}" stroke-width="3" stroke-linecap="round"/>'),
+    "axe": lambda ink, acc, paper: (
+        # the same axe El splits the rock with on the portfolio (AuraFarmer.astro), turned to lie along +x
+        f'<g transform="rotate(90) scale(0.55)"><rect x="-6" y="-178" width="12" height="208" rx="3" fill="{ink}"/><path d="M-6 -164 L-18 -162 L-18 -146 L-6 -144 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M6 -166 L26 -166 L60 -200 L65 -150 L54 -94 L28 -136 L6 -142 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M53 -186 L57 -150 L49 -110" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.5"/></g>'),
+    "hammer": lambda ink, acc, paper: (
+        # the same hammer El splits the rock with on the portfolio (AuraFarmer.astro), turned to lie along +x
+        f'<g transform="rotate(90) scale(0.55)"><rect x="-6" y="-130" width="12" height="160" fill="{ink}"/><rect x="-40" y="-176" width="80" height="50" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M-24 -176 V-126 M24 -176 V-126" stroke="{ink}" stroke-width="4"/></g>'),
+    "halberd": lambda ink, acc, paper: (
+        # the same halberd El splits the rock with on the portfolio (AuraFarmer.astro); it's long, so a bit smaller
+        f'<g transform="rotate(90) scale(0.42)"><rect x="-5" y="-216" width="10" height="252" rx="2" fill="{ink}"/><path d="M0 -296 L9 -240 L4 -214 L-4 -214 L-9 -240 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M5 -208 L22 -210 L54 -230 L58 -186 L50 -148 L22 -170 L5 -170 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M48 -218 L52 -186 L45 -158" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.5"/><path d="M-5 -206 L-46 -184 L-5 -186 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M-7 -170 H7 M-7 -160 H7" stroke="{paper}" stroke-width="2"/></g>'),
+    "keyboard": lambda ink, acc, paper: (
+        f'<path d="M-6 -13 L92 -13 L92 13 L-6 13 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        + "".join(f'<rect x="{1 + k * 8.6:.1f}" y="{-8 + r * 6}" width="6" height="4" fill="{acc if (r, k) == (1, 9) else ink}"/>'
+                  for r in range(3) for k in range(10))),
+}
+
+
+def el_runner(c, uid, weapon="sword"):
     """El in profile, facing right, feet at (0,0), about 104 units tall. Legs swing from the hip,
-    the body bobs twice per stride, the cape ripples, and the sword rides on his right shoulder."""
+    the body bobs twice per stride, the cape ripples, and the weapon (see WEAPONS) rides on his right shoulder."""
     ink, acc, paper = c["ink"], c["accent"], c["paper"]
     leg = ('<path d="M-5 0 L6 0 L7 -20 L5 -44 L-6 -44 L-5 -20 Z" fill="{f}"/>'
            '<path d="M-7 -5 L11 -5 L12 0 L-7 0 Z" fill="{f}"/>')
@@ -56,14 +88,9 @@ def el_runner(c, uid):
     head = ("M-4 -100 C-4 -110 2 -116 10 -116 C18 -116 22 -110 22 -102 C22 -94 16 -88 8 -88 C0 -88 -4 -93 -4 -100 Z")
     hair = ("M-6 -102 C-8 -112 -2 -120 8 -121 L4 -127 L14 -122 L16 -130 L21 -121 L28 -124 L24 -115 "
             "C27 -111 27 -105 24 -101 L18 -108 L12 -104 L6 -110 L0 -102 Z")
-    # the sword, drawn along +x from the guard, then laid back over the shoulder
-    sword = (f'<g transform="translate(0 -84) rotate(-155)">'
-             f'<path d="M-24 -2.6 L-2 -2.6 L-2 2.6 L-24 2.6 Z" fill="{ink}"/>'
-             f'<circle cx="-27" cy="0" r="4.2" fill="{acc}" stroke="{ink}" stroke-width="2"/>'
-             f'<path d="M-3 -14 L3 -14 L3 14 L-3 14 Z" fill="{ink}"/>'
-             f'<path d="M3 -9 L90 -9 L104 0 L90 9 L3 9 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
-             f'<path d="M10 0 L84 0" stroke="{acc}" stroke-width="3" stroke-linecap="round"/>'
-             f'</g>')
+    held = WEAPONS.get(weapon, WEAPONS["sword"])(ink, acc, paper)
+    # laid back over the right shoulder, the business end up and behind him
+    sword = f'<g transform="translate(0 -84) rotate(-155)">{held}</g>'
     arm = f'<path d="M4 -84 C8 -76 12 -74 17 -76" fill="none" stroke="{ink}" stroke-width="7" stroke-linecap="round"/>'
     hand = f'<circle cx="17" cy="-76" r="4.8" fill="{ink}"/>'
     return (

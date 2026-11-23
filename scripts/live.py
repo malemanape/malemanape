@@ -11,6 +11,7 @@ Only needs fontTools (pip install fonttools).
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import math
 import os
@@ -19,9 +20,10 @@ import sys
 import urllib.request
 from html import escape
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art import el_runner, runner_css
+from art import WEAPONS, el_runner, runner_css
 from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, panel, text, text_width, write
 
 W = 830
@@ -366,7 +368,17 @@ def streak_card(theme, d):
     return doc(W, h + 8, body, label)
 
 
-def year_card(theme, d):
+def weapon_of_the_day(cfg: dict) -> str:
+    """Same weapon all day (in your time zone), a new one tomorrow; the keyboard turns up on about 1 day in 10."""
+    tz = ZoneInfo(cfg.get("timezone", "Asia/Manila"))
+    h = int(hashlib.sha1(dt.datetime.now(tz).date().isoformat().encode()).hexdigest(), 16)
+    if h % 10 == 0:
+        return "keyboard"
+    common = [w for w in WEAPONS if w != "keyboard"]
+    return common[(h // 10) % len(common)]
+
+
+def year_card(theme, d, weapon="sword"):
     c = PALETTES[theme]
     days = d["days"]
     first = dt.date.fromisoformat(days[0][0])
@@ -417,7 +429,7 @@ def year_card(theme, d):
              f'<g clip-path="url(#yc)">'
              f'<g class="fog"><rect x="{ex + 10}" y="{gy - 2}" width="{gw + 70}" height="{gh + 2}" fill="{c["paper"]}" opacity="0.8"/></g>'
              f'<g class="elmove"><g transform="translate({ex} {ground})"><g class="elpop">'
-             f'<g transform="scale(0.4)">{el_runner(c, "e")}</g></g></g></g>'
+             f'<g transform="scale(0.4)">{el_runner(c, "e", weapon)}</g></g></g></g>'
              + burst("pEnd", ex + track + 2) + burst("pStart", ex + 2) + '</g>')
     css = (runner_css("e")
            + f".elmove,.fog{{animation:{T}s linear infinite}}.elmove{{animation-name:move}}.fog{{animation-name:fog}}"
@@ -431,8 +443,9 @@ def year_card(theme, d):
            f"@keyframes pEnd{{0%,86%{{opacity:0;transform:scale(0.3)}}87%{{opacity:1;transform:scale(0.6)}}91%,100%{{opacity:0;transform:scale(1.6)}}}}"
            f"@keyframes pStart{{0%,91%{{opacity:0;transform:scale(0.3)}}92%{{opacity:1;transform:scale(0.6)}}96%,100%{{opacity:0;transform:scale(1.6)}}}}"
            f"@media (prefers-reduced-motion:reduce){{.elmove{{transform:translateX({track}px)}}.fog{{opacity:0}}}}")
+    body += text(f"today's weapon: {weapon}", W - 14 - 18, h - 12, 10.5, c["muted"], mono=True, anchor="end")
     label = (f"Contribution graph for the past year, {d['total']} contributions. "
-             "El runs across it with a greatsword on his shoulder, clearing the fog.")
+             f"El runs across it with a {weapon} on his shoulder, clearing the fog.")
     return doc(W, h + 14, body, label, css)
 
 
@@ -569,10 +582,11 @@ if __name__ == "__main__":
         d = sample(cfg)
     else:
         d = fetch(cfg, token)
+    weapon = weapon_of_the_day(cfg)
     for theme in THEMES:
         write("stats", theme, stats_card(theme, d), "generated")
         write("streak", theme, streak_card(theme, d), "generated")
-        write("year", theme, year_card(theme, d), "generated")
+        write("year", theme, year_card(theme, d, weapon), "generated")
         write("ticker", theme, ticker(theme, d), "generated")
         for i, repo in enumerate(d["cards"]):
             write(f"repo-{i + 1}", theme, repo_card(theme, repo, i, cfg["user"]), "generated")

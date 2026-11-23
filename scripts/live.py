@@ -149,7 +149,7 @@ def sample(cfg: dict) -> dict:
             ("Ka-dugo", ("JavaScript", "#f1e05a"), 30, "docs: README with screenshots", None, 4),
             ("ThriftBite", ("Java", "#b07219"), 50, "docs: rewrite the README as a front page",
              "Surplus-food marketplace for Baguio.", 1),
-            ("webapp-secondserve", ("Python", "#3572A5"), 120, "feat(api): pickup time slots", "IT313 team project", 5)]
+            ("team-capstone", ("Python", "#3572A5"), 120, "feat(api): pickup time slots", "A team project for class", 5)]
     u = cfg["user"]
     recent = [dict(name=n, nameWithOwner=f"{u}/{n}", description=desc, url=f"https://github.com/{u}/{n}",
                    isPrivate=False, owner={"login": u}, pushedAt=(NOW - dt.timedelta(hours=h)).isoformat(),

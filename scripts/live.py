@@ -3,7 +3,7 @@
     python scripts/live.py            # real data: needs PROFILE_TOKEN or GITHUB_TOKEN in the environment
     python scripts/live.py --sample   # made-up numbers, for previewing without a token
 
-Writes generated/{stats,streak,year}-{light,dark}.svg, generated/repo-<n>-{light,dark}.svg
+Writes generated/{stats,streak,year,ticker}-{light,dark}.svg, generated/repo-<n>-{light,dark}.svg
 and generated/building.json (which repo each card shows, for readme.py).
 Only needs fontTools (pip install fonttools).
 """
@@ -32,6 +32,7 @@ NOW = dt.datetime.now(dt.timezone.utc)
 QUERY = """
 query($login: String!) {
   user(login: $login) {
+    id
     contributionsCollection {
       totalCommitContributions
       restrictedContributionsCount
@@ -55,7 +56,10 @@ REPO_FIELDS = """
   nameWithOwner name description url isPrivate pushedAt
   owner { login }
   primaryLanguage { name color }
-  defaultBranchRef { target { ... on Commit { history(first: 15) { nodes { messageHeadline parents { totalCount } } } } } }
+  defaultBranchRef { target { ... on Commit {
+    history(first: 15) { nodes { messageHeadline parents { totalCount } } }
+    mine: history(first: 8, author: {id: %s}) { nodes { messageHeadline committedDate parents { totalCount } } }
+  } } }
 """
 
 
@@ -95,7 +99,7 @@ def fetch(cfg: dict, token: str) -> dict:
     parts = []
     for i, full in enumerate(wanted):
         owner, _, name = full.rpartition("/")
-        parts.append(f'r{i}: repository(owner: {json.dumps(owner or user)}, name: {json.dumps(name)}) {{{REPO_FIELDS}}}')
+        parts.append(f'r{i}: repository(owner: {json.dumps(owner or user)}, name: {json.dumps(name)}) {{{REPO_FIELDS % json.dumps(d["id"])}}}')
     found = gql("query {" + "\n".join(parts) + "}", {}, token) if parts else {}
     looked_up = [found.get(f"r{i}") for i in range(len(wanted))]
     return dict(
@@ -105,7 +109,22 @@ def fetch(cfg: dict, token: str) -> dict:
         prs=d["pullRequests"]["totalCount"], issues=d["issues"]["totalCount"],
         contributed=d["repositoriesContributedTo"]["totalCount"], stars=stars,
         langs=langs, cards=pick_cards(cfg, looked_up[:len(pins)], looked_up[len(pins):]),
+        pushes=latest_pushes(looked_up),
     )
+
+
+def latest_pushes(repos: list, n: int = 6) -> list[tuple[str, str, str]]:
+    """Your own latest commits across the looked-up public repos, newest first: (repo, message, date).
+    Merge commits are skipped; private repos never get here, so their messages stay private."""
+    out = []
+    for repo in repos:
+        if not repo or repo.get("isPrivate"):
+            continue
+        tgt = ((repo.get("defaultBranchRef") or {}).get("target") or {})
+        for c in (tgt.get("mine") or {}).get("nodes") or []:
+            if (c.get("parents") or {}).get("totalCount", 1) <= 1:
+                out.append((repo["name"], c["messageHeadline"], c["committedDate"]))
+    return sorted(out, key=lambda x: x[2], reverse=True)[:n]
 
 
 def pick_cards(cfg: dict, pinned: list, recent: list) -> list[tuple[dict | None, dict]]:
@@ -156,7 +175,8 @@ def sample(cfg: dict) -> dict:
     pins = [f for f in cfg["building"].get("pin", []) if not f.get("upcoming")]
     pinned = [next((r for r in recent if r["name"] == f["repo"].rpartition("/")[2]), None) for f in pins]
     rest = [r for r in recent if r not in pinned]
-    return dict(days=days, total=sum(c for _, c in days), commits=412, prs=37, issues=12, contributed=6, stars=9,
+    pushes = [(n, msg, (NOW - dt.timedelta(hours=h)).isoformat()) for n, _, h, msg in fake]
+    return dict(pushes=pushes, days=days, total=sum(c for _, c in days), commits=412, prs=37, issues=12, contributed=6, stars=9,
                 langs=langs, cards=pick_cards(cfg, pinned, rest))
 
 
@@ -401,6 +421,58 @@ def repo_card(theme, repo, meta, i, user):
     return doc(w + 8, h + 8, body, label, css)
 
 
+def ticker(theme, d):
+    """Caution tape with your latest pushes scrolling across it, like a news ticker."""
+    c = PALETTES[theme]
+    h, size = 48, 12.5
+    period, band = 36, h
+    stripes = "".join(
+        f'<polygon points="{x},0 {x + period / 2},0 {x + period / 2 - band},{band} {x - band},{band}" fill="{c["accent"]}"/>'
+        for x in range(-period, W + 2 * period, period))
+    body = (f'<rect width="{W}" height="{h}" fill="{c["ink"]}"/>'
+            f'<svg width="{W}" height="{h}" overflow="hidden"><g class="tape">{stripes}</g></svg>')
+    # the strip the text runs on
+    sx, sy, sh_ = 172, 9, h - 18
+    body += f'<rect x="{sx}" y="{sy}" width="{W - sx - 10}" height="{sh_}" fill="{c["ink"]}" stroke="{c["paper"]}" stroke-width="1.5"/>'
+    base = sh_ / 2 + size * 0.36  # inside the strip's own <svg>
+    items, x = "", 0.0
+    pushes = [(repo, clean(msg), when) for repo, msg, when in d.get("pushes", [])]
+    if not pushes:
+        pushes = [("el", "quiet on main today. probably drawing lore instead", "")]
+    for repo, msg, when in pushes:
+        for part, color, bold, extra in ((repo, c["on_ink_accent"], True, ""), ("  " + msg, c["card"], False, ""),
+                                         (("  " + short_ago(when)) if when else "", c["card"], False, ' opacity="0.6"'),
+                                         ("   ■   ", c["accent"], True, "")):
+            if part:
+                items += text(part, x, base, size, color, mono=True, bold=bold, extra=extra)
+                x += text_width(part, size, mono=True, bold=bold)
+    loop = x
+    speed = 45  # px per second
+    body += (f'<svg x="{sx + 1}" y="{sy}" width="{W - sx - 12}" height="{sh_}" overflow="hidden">'
+             f'<g class="run"><g transform="translate(10 0)">{items}</g><g transform="translate({loop + 10:.1f} 0)">{items}</g></g></svg>')
+    # the label, pinned on the left like a sign on the tape
+    body += (f'<rect x="16" y="11" width="146" height="{h - 18}" fill="{c["ink"]}"/>'
+             f'<rect x="12" y="7" width="146" height="{h - 18}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
+             f'<circle class="blink" cx="28" cy="{7 + (h - 18) / 2}" r="5" fill="{c["accent"]}"/>'
+             + text("LATEST PUSHES", 40, 7 + (h - 18) / 2 + 4.5, 12.5, c["ink"], mono=True, bold=True))
+    css = (f".tape{{animation:slide 2.4s linear infinite}}@keyframes slide{{to{{transform:translateX({period}px)}}}}"
+           f".run{{animation:run {loop / speed:.1f}s linear infinite}}@keyframes run{{to{{transform:translateX(-{loop:.1f}px)}}}}"
+           ".blink{animation:blink 1.2s steps(1) infinite}@keyframes blink{50%{opacity:.15}}")
+    label = "Latest pushes: " + "; ".join(f"{r}: {m}" + (f" ({short_ago(w)})" if w else "") for r, m, w in pushes)
+    return doc(W, h, body, label, css)
+
+
+def clean(msg: str, limit: int = 64) -> str:
+    """Plain ASCII-ish text that the outlined font can draw, cut to a ticker-friendly length."""
+    msg = "".join(ch if 32 <= ord(ch) < 127 or ch == "·" else " " for ch in msg)
+    msg = " ".join(msg.split())
+    return msg if len(msg) <= limit else msg[: limit - 3].rstrip() + "..."
+
+
+def short_ago(iso: str) -> str:
+    return ago(iso).replace("pushed ", "")
+
+
 if __name__ == "__main__":
     cfg = config()
     token = os.environ.get("PROFILE_TOKEN") or os.environ.get("GITHUB_TOKEN")
@@ -414,6 +486,7 @@ if __name__ == "__main__":
         write("stats", theme, stats_card(theme, d), "generated")
         write("streak", theme, streak_card(theme, d), "generated")
         write("year", theme, year_card(theme, d), "generated")
+        write("ticker", theme, ticker(theme, d), "generated")
         for i, (repo, meta) in enumerate(d["cards"]):
             write(f"repo-{i + 1}", theme, repo_card(theme, repo, meta, i, cfg["user"]), "generated")
     # readme.py links the cards from this list, since the repos change from run to run

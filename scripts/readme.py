@@ -87,6 +87,7 @@ def main():
     out.append(f'<p align="center">{pic("assets/gallery", "ASCII gallery: knight, koi, El waving, campfire")}</p>')
     out.append("")
     out.append(f'<h3>{pic("assets/h-building", "Currently building")}</h3>')
+    out.append(f'<p align="center">{pic("generated/ticker", "Latest pushes")}</p>')
     cards = []
     for i, f in enumerate(building(cfg), 1):
         owner, _, name = f["repo"].rpartition("/")

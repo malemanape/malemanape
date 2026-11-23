@@ -1,5 +1,5 @@
 {
-  "user": "Gittyers082",
+  "user": "malemanape",
   "name": "El. Steven D. Cruz",
   "episode": "EPISODE 01 · THE CHARACTER",
   "tagline": "FULL-STACK TODAY. AI ENGINEERING NEXT.",
@@ -29,7 +29,7 @@
   "featured": [
     { "repo": "webapp-secondserve", "role": "backend lead", "tag": "Team", "fallback": "Surplus-food marketplace for IT313. Pickup-only listings, built with my team." },
     { "repo": "my-first-rag",       "role": "solo",         "upcoming": true, "fallback": "I just learned RAG!" },
-    { "repo": "thriftbite-sockets", "role": "upgrading",    "fallback": "Old team project, now a full-stack web app: Spring Boot, WebSockets, PostgreSQL, React." },
+    { "repo": "ThriftBite", "role": "upgrading",    "fallback": "Old team project, now a full-stack web app: Spring Boot, WebSockets, PostgreSQL, React." },
     { "repo": "my-portfolio",       "role": "solo",         "fallback": "The comic-style portfolio this profile matches. El lives here." }
   ],
 

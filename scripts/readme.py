@@ -1,4 +1,4 @@
-"""Writes README.md from profile.config.json, so links and featured repos never drift.
+"""Writes README.md from profile.config.json and what live.py found, so links never drift.
 
     python scripts/readme.py
 """
@@ -44,13 +44,10 @@ def srcset(url: str) -> str:
     return url.replace(",", "%2C")
 
 
-def building(cfg: dict) -> list[dict]:
-    """Which repo each "currently building" card shows. live.py writes the list on every run;
-    before its first run, fall back to the pins in the config."""
-    made = ROOT / "generated" / "building.json"
-    if made.exists():
-        return json.loads(made.read_text(encoding="utf-8"))
-    return cfg["building"].get("pin", [])
+def activity() -> list[str]:
+    """Which repo each "recent activity" card shows, as live.py picked them on its last run."""
+    made = ROOT / "generated" / "activity.json"
+    return json.loads(made.read_text(encoding="utf-8")) if made.exists() else []
 
 
 def main():
@@ -95,13 +92,10 @@ def main():
     out.append(f'<h3>{pic("assets/h-gallery", "The gallery")}</h3>')
     out.append(f'<p align="center">{pic("assets/gallery", "ASCII gallery: knight, koi, El waving, campfire")}</p>')
     out.append("")
-    out.append(f'<h3>{pic("assets/h-building", "Currently building")}</h3>')
+    out.append(f'<h3>{pic("assets/h-activity", "Recent activity")}</h3>')
     out.append(f'<p align="center">{pic("generated/ticker", "Latest pushes")}</p>')
-    cards = []
-    for i, f in enumerate(building(cfg), 1):
-        owner, _, name = f["repo"].rpartition("/")
-        card = pic(f"generated/repo-{i}", name + (" (coming soon)" if f.get("upcoming") else ""), 412)
-        cards.append(card if f.get("upcoming") else f'<a href="https://github.com/{owner or user}/{name}">{card}</a>')
+    cards = [f'<a href="https://github.com/{full}">{pic(f"generated/repo-{i}", full.rpartition("/")[2], 412)}</a>'
+             for i, full in enumerate(activity(), 1)]
     for i in range(0, len(cards), 2):
         out.append('<p align="center">')
         out.extend("  " + c for c in cards[i:i + 2])

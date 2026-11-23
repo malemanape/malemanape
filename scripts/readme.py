@@ -81,7 +81,7 @@ def main():
     out.append("")
     if (ROOT / "generated" / "stack-light.svg").exists():
         out.append(f'<h3>{pic("assets/h-stack", "Stack")}</h3>')
-        out.append(f'<p align="center"><a href="{escape(site)}">{pic("generated/stack", "Stack: languages with confidence bars, then frontend, backend, data, tools, design and what is next")}</a></p>')
+        out.append(f'<p align="center"><a href="{escape(site)}">{pic("generated/stack", "Stack: the languages and tools I build with")}</a></p>')
         out.append("")
     out.append(f'<h3>{pic("assets/h-stats", "Stats")}</h3>')
     out.append(f'<p align="center">{pic("generated/stats", "Power level: aura rank, stats and top languages")}</p>')

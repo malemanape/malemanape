@@ -21,7 +21,7 @@ from html import escape
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art import BODY, CAPE_B, HAIR, LEGS
+from art import el_runner, runner_css
 from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, panel, text, text_width, write
 
 W = 830
@@ -370,9 +370,10 @@ def year_card(theme, d):
     weeks = math.ceil(len(cells) / 7)
     mx = max((n for _, n in days), default=1) or 1
     cs, gap = 11, 3
-    gx, gy = 40, 82
+    gx, gy = 40, 96
     gw = weeks * (cs + gap) - gap
-    h = gy + 7 * (cs + gap) + 40
+    gh = 7 * (cs + gap)
+    h = gy + gh + 40
     body = panel(c, 0, 0, W - 14, h, "~/el/year.svg", f"{d['total']:,} contributions · past year", uid="y")
     for i, cell in enumerate(cells):
         if cell is None:
@@ -390,22 +391,43 @@ def year_card(theme, d):
         if day.day <= 7 and day.month not in seen and i // 7 < weeks - 2:
             seen.add(day.month)
             body += text(day.strftime("%b"), gx + (i // 7) * (cs + gap), gy + 7 * (cs + gap) + 16, 11, c["muted"], mono=True)
-    # the fog El clears as he runs, and El himself
-    T = 16
-    body += (f'<clipPath id="yc"><rect x="{gx - 22}" y="{gy - 52}" width="{gw + 34}" height="{7 * (cs + gap) + 54}"/></clipPath>'
-             f'<g clip-path="url(#yc)"><g class="run"><rect x="{gx - 2}" y="{gy - 2}" width="{gw + 6}" height="{7 * (cs + gap) + 2}" fill="{c["paper"]}" opacity="0.78"/>'
-             f'<g transform="translate({gx - 14} {gy - 46})"><g class="hop">'
-             f'<g transform="scale(0.13) translate(-110 -30)">'
-             f'<path d="{BODY}" fill="{c["ink"]}"/><path d="{LEGS}" fill="{c["ink"]}"/>'
-             f'<path d="{CAPE_B}" fill="{c["accent"]}" stroke="{c["ink"]}" stroke-width="8"/>'
-             f'<g transform="translate(92 58) scale(0.55)"><path d="{HAIR}" fill="{c["ink"]}"/></g></g></g></g></g></g>')
-    css = (f".run{{animation:run {T}s infinite}}"
-           f"@keyframes run{{0%{{transform:translateX(0);animation-timing-function:steps({weeks},end)}}"
-           f"75%,100%{{transform:translateX({weeks * (cs + gap)}px)}}}}"
-           f".hop{{animation:hop {T * 0.75 / weeks * 2:.3f}s steps(2,jump-none) infinite}}"
-           f"@keyframes hop{{0%{{transform:translateY(0)}}100%{{transform:translateY(-5px)}}}}"
-           f"@media (prefers-reduced-motion:reduce){{.run{{transform:translateX({weeks * (cs + gap)}px)}}}}")
-    label = f"Contribution graph for the past year, {d['total']} contributions. El runs across it week by week."
+    # El runs side-on along the top, greatsword on his shoulder, clearing the fog behind him.
+    # At the last week he vanishes in a burst, the fog rolls back in, and he pops in at the start.
+    T, ground = 14, gy - 6
+    ex = gx + 16              # his feet at the start, over the first week
+    track = gw - 12           # ...and at the end, over the last
+    ftrack = gw + 4           # the fog's left edge ends just past the grid
+    body += (f'<line x1="{gx - 4}" y1="{ground}" x2="{gx + gw + 4}" y2="{ground}" stroke="{c["ink"]}" stroke-width="2" '
+             f'stroke-dasharray="2 6" opacity="0.35"/>')
+
+    def burst(cls, px):
+        cy = ground - 22
+        rays = "".join(f'<path d="M{px + 9 * math.cos(k * math.pi / 4):.1f} {cy + 9 * math.sin(k * math.pi / 4):.1f} '
+                       f'L{px + 17 * math.cos(k * math.pi / 4):.1f} {cy + 17 * math.sin(k * math.pi / 4):.1f}" '
+                       f'stroke="{c["accent"]}" stroke-width="3" stroke-linecap="round"/>' for k in range(8))
+        return (f'<g class="{cls}" style="transform-origin:{px}px {cy}px">{rays}'
+                f'<circle cx="{px}" cy="{cy}" r="6" fill="none" stroke="{c["ink"]}" stroke-width="2"/></g>')
+
+    body += (f'<clipPath id="yc"><rect x="3" y="29" width="{W - 20}" height="{h - 32}"/></clipPath>'
+             f'<g clip-path="url(#yc)">'
+             f'<g class="fog"><rect x="{ex + 10}" y="{gy - 2}" width="{gw + 70}" height="{gh + 2}" fill="{c["paper"]}" opacity="0.8"/></g>'
+             f'<g class="elmove"><g transform="translate({ex} {ground})"><g class="elpop">'
+             f'<g transform="scale(0.4)">{el_runner(c, "e")}</g></g></g></g>'
+             + burst("pEnd", ex + track + 2) + burst("pStart", ex + 2) + '</g>')
+    css = (runner_css("e")
+           + f".elmove,.fog{{animation:{T}s linear infinite}}.elmove{{animation-name:move}}.fog{{animation-name:fog}}"
+           f"@keyframes move{{0%{{transform:translateX(0)}}84%,89%{{transform:translateX({track}px)}}89.1%,100%{{transform:translateX(0)}}}}"
+           f"@keyframes fog{{0%{{transform:translateX(0);opacity:1}}84%{{transform:translateX({ftrack}px);opacity:1}}"
+           f"89%{{transform:translateX({ftrack}px);opacity:0}}89.1%{{transform:translateX(0);opacity:0}}97%,100%{{transform:translateX(0);opacity:1}}}}"
+           f".elpop{{transform-box:fill-box;transform-origin:50% 100%;animation:pop {T}s linear infinite}}"
+           f"@keyframes pop{{0%,84%{{transform:scale(1)}}86%{{transform:scale(1.15,0.85)}}88.5%,92%{{transform:scale(0)}}"
+           f"95%{{transform:scale(1.25)}}97%,100%{{transform:scale(1)}}}}"
+           f".pEnd,.pStart{{opacity:0;animation:{T}s ease-out infinite}}.pEnd{{animation-name:pEnd}}.pStart{{animation-name:pStart}}"
+           f"@keyframes pEnd{{0%,86%{{opacity:0;transform:scale(0.3)}}87%{{opacity:1;transform:scale(0.6)}}91%,100%{{opacity:0;transform:scale(1.6)}}}}"
+           f"@keyframes pStart{{0%,91%{{opacity:0;transform:scale(0.3)}}92%{{opacity:1;transform:scale(0.6)}}96%,100%{{opacity:0;transform:scale(1.6)}}}}"
+           f"@media (prefers-reduced-motion:reduce){{.elmove{{transform:translateX({track}px)}}.fog{{opacity:0}}}}")
+    label = (f"Contribution graph for the past year, {d['total']} contributions. "
+             "El runs across it with a greatsword on his shoulder, clearing the fog.")
     return doc(W, h + 14, body, label, css)
 
 

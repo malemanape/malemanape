@@ -1,4 +1,4 @@
-"""The dense ASCII gallery: knight -> koi -> El waving -> campfire, looping.
+"""The dense ASCII gallery: knight -> koi -> El waving -> greatsword -> campfire -> Merlin, looping.
 
 Each scene is drawn here as a grayscale vector picture (all original art), rasterised,
 and every cell of a 126 x 40 grid becomes a character by how dark it is. Parts marked
@@ -321,6 +321,129 @@ def campfire_text(f: int):
     return out
 
 
+# ---------------------------------------------------------------- scene 5: the greatsword, planted
+
+def greatsword(f: int, p: Pen):
+    """El's greatsword (the one from the year card) planted in his rock, his cape hung on the guard
+    and snapping in the wind while he's away."""
+    sky(p, 700, "#cfcfcf")
+    if not p.mask:
+        p.add('<path d="M0 700 L220 560 L380 640 L560 500 L760 650 L900 590 L1120 700 Z M1180 700 L1380 580 L1560 660 L1700 600 L1896 690 L1896 700 Z" fill="#bdbdbd"/>')
+    # wind: streaks and leaves blowing right
+    for i in range(7):
+        x = (i * 331 + f * 140) % (VW + 400) - 200
+        y = 180 + (i * 113) % 420
+        p.add(f'<path d="M{x} {y} q 70 -14 140 0 t 140 0" stroke="{p.col("#c4c4c4")}" stroke-width="8" fill="none" stroke-linecap="round"/>')
+    for i in range(5):
+        x = (i * 397 + f * 190) % (VW + 200) - 100
+        y = 260 + (i * 151 + f * 23) % 380
+        p.add(f'<ellipse cx="{x}" cy="{y}" rx="16" ry="7" transform="rotate({(f * 40 + i * 70) % 360} {x} {y})" fill="{p.col("#7a7a7a", True)}"/>')
+    # the rock
+    p.add(f'<g transform="translate(700 380) scale(1.45)">'
+          f'<path d="{ROCK}" fill="{p.col("#b4b4b4")}" stroke="{p.col("#111")}" stroke-width="6"/>'
+          f'<path d="{ROCK_SHADE}" fill="{p.col("#7a7a7a")}"/></g>')
+    cx, top, tip = 948, 170, 760          # blade from the guard down into the rock
+    # the cape, hung on the guard, flowing right; it ripples between two shapes
+    k = (1 - math.cos(f / 5 * math.pi)) / 2
+    a = (f"M{cx - 110} {top + 20} L{cx + 110} {top + 20} C{cx + 170} {top + 120} {cx + 230} {top + 230} {cx + 330} {top + 330} "
+         f"C{cx + 260} {top + 320} {cx + 230} {top + 360} {cx + 170} {top + 350} C{cx + 120} {top + 380} {cx + 60} {top + 340} {cx + 20} {top + 360} "
+         f"C{cx - 40} {top + 260} {cx - 90} {top + 140} {cx - 110} {top + 20} Z")
+    b = (f"M{cx - 110} {top + 20} L{cx + 110} {top + 20} C{cx + 200} {top + 90} {cx + 300} {top + 170} {cx + 420} {top + 230} "
+         f"C{cx + 350} {top + 250} {cx + 320} {top + 300} {cx + 250} {top + 300} C{cx + 190} {top + 340} {cx + 120} {top + 300} {cx + 70} {top + 330} "
+         f"C{cx + 0} {top + 240} {cx - 70} {top + 130} {cx - 110} {top + 20} Z")
+    p.add(f'<path d="{lerp_path(a, b, k)}" fill="{p.col("#6e6e6e", True)}" stroke="{p.col("#111")}" stroke-width="10"/>')
+    # blade, fuller, guard, grip, pommel
+    p.add(f'<path d="M{cx - 70} {top + 30} L{cx + 44} {top + 30} L{cx + 44} {tip - 50} L{cx} {tip} L{cx - 44} {tip - 50} Z" fill="{p.col("#efefef")}" stroke="{p.col("#111")}" stroke-width="12" stroke-linejoin="round"/>')
+    p.add(f'<path d="M{cx} {top + 60} L{cx} {tip - 80}" stroke="{p.col("#555", True)}" stroke-width="16" stroke-linecap="round"/>')
+    p.add(f'<rect x="{cx - 150}" y="{top + 2}" width="300" height="40" rx="8" fill="{p.col("#222")}"/>')
+    p.add(f'<rect x="{cx - 16}" y="{top - 110}" width="32" height="112" fill="{p.col("#333")}"/>')
+    p.add(f'<circle cx="{cx}" cy="{top - 124}" r="26" fill="{p.col("#555", True)}" stroke="{p.col("#111")}" stroke-width="8"/>')
+
+
+def greatsword_text(f: int):
+    out = [(6, 30, "brb, getting coffee.", False), (6, 32, "  - El", False)]
+    if f % 4 < 2:
+        out.insert(0, (6, 28, "[ do not touch ]", True))
+    return out
+
+
+# ---------------------------------------------------------------- scene 6: Merlin
+
+def _crown(peaks, valleys, base_l, base_r, bend):
+    """Merlin's flame layer, ported from his app's fire.ts (via the portfolio's merlinFire.ts)."""
+    steps = []
+    for i, pt in enumerate(peaks):
+        steps.append(("peak", pt))
+        if i < len(valleys):
+            steps.append(("valley", valleys[i]))
+    steps.append(("base", base_r))
+    d, prev = f"M{base_l[0]:.1f} {base_l[1]:.1f}", base_l
+    for kind, (bx, by) in steps:
+        ax, ay = prev
+        if kind == "peak":
+            dy = ay - by
+            c1 = (ax - bend * 0.6 if prev is base_l else ax + 2, ay - dy * 0.55)
+            c2 = (bx - bend * 0.4, by + dy * 0.3)
+        else:
+            dy = by - ay
+            c1 = (ax + bend * 0.4, ay + dy * 0.35)
+            c2 = (bx - bend * 0.2 if kind == "valley" else bx + bend * 0.8, by - dy * 0.45)
+        d += f" C{c1[0]:.1f} {c1[1]:.1f} {c2[0]:.1f} {c2[1]:.1f} {bx:.1f} {by:.1f}"
+        prev = (bx, by)
+    return d + " Z"
+
+
+MERLIN_FIRE = [  # (base left, base right, peaks, valleys, sway, lift, bend, gray), back to front
+    ((66, 118), (134, 118), [(34, 40), (62, 6), (100, -18), (138, 0), (168, 36)], [(48, 72), (80, 42), (120, 36), (152, 64)],
+     [[-12, -3, -14, -5], [-6, 4, -8, 2], [5, -7, 8, -4], [6, -2, 9, 3], [12, 4, 14, 5]],
+     [[0, -8, 4, -4], [-6, 4, -10, 2], [4, -10, 0, -6], [-8, 2, -4, 4], [2, -6, -2, -8]], 16, "#9a9a9a"),
+    ((64, 116), (136, 116), [(44, 44), (72, 14), (100, -6), (130, 8), (158, 32)], [(60, 72), (86, 48), (116, 42), (144, 60)],
+     [[-10, -2, -12, -4], [-5, 6, -8, 3], [6, -8, 5, -5], [5, -3, 9, 2], [10, 3, 12, 5]],
+     [[0, -7, 3, -4], [-5, 3, -9, 2], [3, -8, 0, -5], [-7, 2, -4, 4], [2, -5, -1, -7]], 13, "#5e5e5e"),
+    ((72, 104), (128, 104), [(68, 56), (88, 32), (110, 22), (132, 46)], [(78, 72), (98, 54), (122, 60)],
+     [[-6, 2, -8, 0], [4, -5, 3, -4], [-5, 6, -4, 5], [6, -2, 8, 1]],
+     [[-3, 3, -6, 0], [2, -6, 3, -3], [-4, 0, -6, 3], [0, -4, 2, -5]], 9, "#d8d8d8"),
+]
+
+
+def merlin(f: int, p: Pen):
+    """Merlin, the flaming skull mage from merlin-desktop-companion: his fire flickers, he bobs,
+    his jaw chatters while he talks, and his rune circle turns under him."""
+    sky(p, 880, "#e2e2e2")
+    t = f / 12 * 4                       # four flame keyframes, eased through twelve frames
+    k0, frac = int(t) % 4, t - int(t)
+    k1 = (k0 + 1) % 4
+    bob = math.sin(f / 12 * 2 * math.pi) * 6
+    s, ox, oy = 4.0, 948 - 100 * 4.0, 120
+    # the rune circle on the floor, turning
+    rc = f"translate({948} {oy + 200 * s}) scale(1 0.3)"
+    rot = f * 15
+    p.add(f'<g transform="{rc}"><g transform="rotate({rot})" fill="none" stroke="{p.col("#7a7a7a", True)}">'
+          f'<circle r="{62 * s}" stroke-width="16"/><circle r="{50 * s}" stroke-width="8"/>'
+          f'<path d="M0 {-50 * s} L{43.3 * s} {25 * s} L{-43.3 * s} {25 * s} Z M0 {50 * s} L{43.3 * s} {-25 * s} L{-43.3 * s} {-25 * s} Z" stroke-width="9"/></g></g>')
+    p.add(f'<g transform="translate({ox} {oy + bob * s}) scale({s})">')
+    for bl, br, peaks, valleys, sway, lift, bend, gray in MERLIN_FIRE:
+        def at(k):
+            return [(x + sw[k], y + lf[k]) for (x, y), sw, lf in zip(peaks, sway, lift)]
+        pk = [(a[0] + (b[0] - a[0]) * frac, a[1] + (b[1] - a[1]) * frac) for a, b in zip(at(k0), at(k1))]
+        p.add(f'<path d="{_crown(pk, valleys, bl, br, bend)}" fill="{p.col(gray, True)}"/>')
+    ink, bone = p.col("#111"), p.col("#f2f2f2")
+    p.add(f'<path d="M52 106 Q46 54 100 48 Q154 54 148 106 Q148 124 132 130 L128 142 L72 142 L68 130 Q52 124 52 106 Z" fill="{bone}" stroke="{ink}" stroke-width="3.5"/>'
+          f'<path d="M120 58 L113 72 L121 78" fill="none" stroke="{ink}" stroke-width="2.5"/>'
+          f'<ellipse cx="78" cy="102" rx="16" ry="18" fill="{ink}"/><ellipse cx="122" cy="102" rx="16" ry="18" fill="{ink}"/>'
+          f'<circle cx="80" cy="106" r="6.5" fill="{p.col("#bdbdbd", True)}"/><circle cx="120" cy="106" r="6.5" fill="{p.col("#bdbdbd", True)}"/>'
+          f'<path d="M95 120 L105 120 L100 128 Z" fill="{ink}"/>')
+    jaw = 6 if f % 3 == 1 else 0         # talking
+    p.add(f'<g transform="translate(0 {jaw})"><path d="M72 142 L128 142 Q131 162 116 168 L84 168 Q69 162 72 142 Z" fill="{bone}" stroke="{ink}" stroke-width="3.5"/></g>')
+    p.add("</g>")
+
+
+def merlin_text(f: int):
+    lines = ["hello, mortal.", "your code compiles?", "...suspicious. (o_o)"]
+    shown = min(len(lines), 1 + f // 4)
+    return [(6, 12 + 2 * i, s, i == 0) for i, s in enumerate(lines[:shown])]
+
+
 # ---------------------------------------------------------------- frames -> grid -> svg
 
 SCENES = [
@@ -328,7 +451,9 @@ SCENES = [
     ("knight.txt", "rest between quests, then back to building.", knight, knight_text, 14, list(range(14)), 0.3),
     ("koi.txt", "swim upstream long enough and you become a dragon.", koi, None, 12, list(range(12)) * 2, 0.22),
     ("el.txt", "hi, it's El. thanks for dropping by.", el, el_text, 12, list(range(12)) + list(range(4, 12)), 0.24),
+    ("greatsword.txt", "planted for now. the quest picks up tomorrow.", greatsword, greatsword_text, 10, list(range(10)) * 2, 0.2),
     ("campfire.txt", "save point reached. progress saved.", campfire, campfire_text, 8, list(range(8)) * 3, 0.2),
+    ("merlin.txt", "merlin.exe: a desk companion that talks back. mostly sass.", merlin, merlin_text, 12, list(range(12)) * 2, 0.2),
 ]
 
 
@@ -424,7 +549,8 @@ def svg_for(theme: str, frames, css) -> str:
         f".cap{{font-size:13px;font-weight:700}}" + css
     )
     label = ("Looping dense ASCII gallery: a knight sits on a rock hugging his planted sword while a quill writes "
-             "rest, write, train, repeat; two koi circle a pond; El waves from his rock; a campfire save point.")
+             "rest, write, train, repeat; two koi circle a pond; El waves from his rock; his greatsword planted in the rock "
+             "with his cape snapping in the wind; a campfire save point; Merlin the flaming skull mage, talking.")
     return doc(W, h + 14, body, label, style, mono=True)
 
 

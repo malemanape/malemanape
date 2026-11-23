@@ -27,6 +27,18 @@ BODY = "M128 142 C120 190 122 230 132 252 L208 252 C218 230 220 190 212 142 Z"
 LEGS = "M140 246 L138 310 L164 310 L166 246 Z M176 246 L178 310 L204 310 L202 246 Z"
 BOOTS = "M126 306 H166 V320 H122 Z M176 306 H214 V320 H180 Z"
 HAIR = "M92 150 C78 108 84 66 110 44 L104 14 L126 34 L134 0 L150 30 L170 6 L172 38 L196 22 L188 58 C204 84 206 122 188 150 Z"
+# headphones and the cape's fold, as on the portfolio (AuraFarmer.astro, Hero's desk scene): the ear cup and
+# band sit in HAIR's coordinates, the fold in the cape's
+EAR = "M94 104 C86 102 82 114 88 124 C92 130 98 128 98 122"
+BAND = "M116 56 C102 76 100 102 104 128"
+FOLD_A, FOLD_B = "M168 146 C162 190 164 226 170 256", "M168 146 C160 184 160 214 166 240"
+
+
+def el_head(ink: str, light: str) -> str:
+    """El's head from behind: the spiky hair, then his headphones (band over the top, ear cup at the side)."""
+    return (f'<g transform="translate(92 58) scale(0.55)"><path d="{HAIR}" fill="{ink}"/>'
+            f'<path d="{EAR}" fill="{light}" stroke="{ink}" stroke-width="5"/>'
+            f'<path d="{BAND}" fill="none" stroke="{light}" stroke-width="6" stroke-linecap="round"/></g>')
 CAPE_A = "M132 140 C122 180 120 222 124 262 C150 272 172 252 198 258 C224 264 248 236 274 232 C290 229 302 214 314 204 C288 196 264 188 242 172 C228 162 216 150 208 140 Z"
 CAPE_B = "M132 140 C120 176 116 214 118 250 C146 256 166 236 194 238 C222 240 246 210 272 204 C290 200 304 182 318 170 C292 168 266 166 244 158 C228 152 216 146 208 140 Z"
 
@@ -39,7 +51,9 @@ def el_on_rock(c: dict, uid: str) -> str:
         f'<path d="{BODY}" fill="{c["ink"]}"/><path d="{LEGS}" fill="{c["ink"]}"/><path d="{BOOTS}" fill="{c["ink"]}"/>'
         f'<path d="{CAPE_A}" fill="{c["accent"]}" stroke="{c["ink"]}" stroke-width="4.5" stroke-linejoin="round">'
         f'<animate attributeName="d" dur="2.6s" repeatCount="indefinite" values="{CAPE_A};{CAPE_B};{CAPE_A}"/></path>'
-        f'<g transform="translate(92 58) scale(0.55)"><path d="{HAIR}" fill="{c["ink"]}"/></g>'
+        f'<path d="{FOLD_A}" fill="none" stroke="{c["ink"]}" stroke-width="3" stroke-linecap="round" opacity="0.55">'
+        f'<animate attributeName="d" dur="2.6s" repeatCount="indefinite" values="{FOLD_A};{FOLD_B};{FOLD_A}"/></path>'
+        + el_head(c["ink"], c["card"]) +
         f'<path d="M130 142 C150 134 190 134 210 142" fill="none" stroke="{c["ink"]}" stroke-width="7" stroke-linecap="round"/>'
         "</g>"
     )
@@ -88,9 +102,6 @@ def el_runner(c, uid, weapon="sword"):
     cape_a = "M-4 -86 C-20 -84 -34 -76 -46 -62 C-38 -60 -30 -62 -24 -58 C-30 -52 -36 -46 -40 -38 C-26 -42 -16 -52 -8 -60 Z"
     cape_b = "M-4 -86 C-22 -86 -38 -80 -52 -70 C-44 -66 -36 -66 -30 -62 C-38 -56 -44 -48 -50 -42 C-32 -44 -18 -54 -8 -60 Z"
     torso = "M-11 -46 C-14 -62 -12 -80 -2 -90 L10 -90 C16 -82 16 -62 11 -46 Z"
-    head = ("M-4 -100 C-4 -110 2 -116 10 -116 C18 -116 22 -110 22 -102 C22 -94 16 -88 8 -88 C0 -88 -4 -93 -4 -100 Z")
-    hair = ("M-6 -102 C-8 -112 -2 -120 8 -121 L4 -127 L14 -122 L16 -130 L21 -121 L28 -124 L24 -115 "
-            "C27 -111 27 -105 24 -101 L18 -108 L12 -104 L6 -110 L0 -102 Z")
     held = WEAPONS.get(weapon, WEAPONS["sword"])(ink, acc, paper)
     # laid back over the right shoulder, the business end up and behind him
     sword = f'<g transform="translate(0 -84) rotate(-155)">{held}</g>'
@@ -104,8 +115,8 @@ def el_runner(c, uid, weapon="sword"):
         f'{sword}'
         f'<path d="{torso}" fill="{ink}"/>'
         f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
-        f'<path d="{head}" fill="{ink}"/>'
-        f'<path d="{hair}" fill="{ink}"/>'
+        # the same head as everywhere else (HAIR, headphones and all), sized for the runner
+        f'<g transform="translate(-76 -158) scale(0.5)">{el_head(ink, paper)}</g>'
         f'{arm}{hand}'
         f'</g>'
     )

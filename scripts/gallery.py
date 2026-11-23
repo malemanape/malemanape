@@ -23,7 +23,7 @@ import numpy as np
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art import BODY, BOOTS, CAPE_A, CAPE_B, HAIR, LEGS, ROCK, ROCK_SHADE
+from art import BAND, BODY, BOOTS, CAPE_A, CAPE_B, EAR, HAIR, LEGS, ROCK, ROCK_SHADE
 from lib.svgkit import MONO_ADV, MONO_STACK, PALETTES, THEMES, doc, panel, write
 
 COLS, ROWS = 126, 40
@@ -253,7 +253,9 @@ def el(f: int, p: Pen):
           f'<path d="{cape}" fill="{p.col("#6e6e6e", True)}" stroke="{ink}" stroke-width="4"/>'
           f'<path d="M204 150 L{ex} {ey} L{hx:.1f} {hy:.1f}" stroke="{ink}" stroke-width="15" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
           f'<circle cx="{hx:.1f}" cy="{hy:.1f}" r="11" fill="{ink}"/>'
-          f'<g transform="translate(92 58) scale(0.55)"><path d="{HAIR}" fill="{ink}"/></g></g></g>')
+          f'<g transform="translate(92 58) scale(0.55)"><path d="{HAIR}" fill="{ink}"/>'
+          f'<path d="{EAR}" fill="{p.col("#e6e6e6")}" stroke="{ink}" stroke-width="7"/>'
+          f'<path d="{BAND}" fill="none" stroke="{p.col("#e6e6e6")}" stroke-width="9" stroke-linecap="round"/></g></g></g>')
     if f >= 2:
         p.add(f'<path d="M300 110 L900 110 L900 330 L760 330 L1120 250 L700 330 L300 330 Z" fill="{p.col("#ffffff")}" stroke="{p.col("#111")}" stroke-width="8" stroke-linejoin="round"/>')
 
@@ -338,7 +340,7 @@ def greatsword(f: int, p: Pen):
         x = (i * 397 + f * 190) % (VW + 200) - 100
         y = 260 + (i * 151 + f * 23) % 380
         p.add(f'<ellipse cx="{x}" cy="{y}" rx="16" ry="7" transform="rotate({(f * 40 + i * 70) % 360} {x} {y})" fill="{p.col("#7a7a7a", True)}"/>')
-    cx, top, tip = 948, 170, 900          # the blade runs from the guard down into the rock
+    cx, top, tip = 948, 170, 740          # the blade runs from the guard down into the rock; the tip stays inside it
     # the cape: a thin strip of cloth knotted on the guard, rippling out in the wind
     t = f / 10 * 2 * math.pi
     upper, lower = [], []

@@ -324,11 +324,11 @@ def campfire_text(f: int):
 # ---------------------------------------------------------------- scene 5: the greatsword, planted
 
 def greatsword(f: int, p: Pen):
-    """El's greatsword (the one from the year card) planted in his rock, his cape hung on the guard
-    and snapping in the wind while he's away."""
-    sky(p, 700, "#cfcfcf")
+    """El's greatsword (the one from the year card) planted deep in his rock, a thin strip of his cape
+    knotted on the guard and rippling in the wind while he's away."""
+    sky(p, 900, "#d6d6d6")
     if not p.mask:
-        p.add('<path d="M0 700 L220 560 L380 640 L560 500 L760 650 L900 590 L1120 700 Z M1180 700 L1380 580 L1560 660 L1700 600 L1896 690 L1896 700 Z" fill="#bdbdbd"/>')
+        p.add('<path d="M0 900 L220 640 L380 760 L560 560 L760 780 L900 700 L1120 900 Z M1180 900 L1380 700 L1560 800 L1700 720 L1896 860 L1896 900 Z" fill="#d0d0d0"/>')
     # wind: streaks and leaves blowing right
     for i in range(7):
         x = (i * 331 + f * 140) % (VW + 400) - 200
@@ -338,26 +338,45 @@ def greatsword(f: int, p: Pen):
         x = (i * 397 + f * 190) % (VW + 200) - 100
         y = 260 + (i * 151 + f * 23) % 380
         p.add(f'<ellipse cx="{x}" cy="{y}" rx="16" ry="7" transform="rotate({(f * 40 + i * 70) % 360} {x} {y})" fill="{p.col("#7a7a7a", True)}"/>')
-    # the rock
-    p.add(f'<g transform="translate(700 380) scale(1.45)">'
-          f'<path d="{ROCK}" fill="{p.col("#b4b4b4")}" stroke="{p.col("#111")}" stroke-width="6"/>'
-          f'<path d="{ROCK_SHADE}" fill="{p.col("#7a7a7a")}"/></g>')
-    cx, top, tip = 948, 170, 760          # blade from the guard down into the rock
-    # the cape, hung on the guard, flowing right; it ripples between two shapes
-    k = (1 - math.cos(f / 5 * math.pi)) / 2
-    a = (f"M{cx - 110} {top + 20} L{cx + 110} {top + 20} C{cx + 170} {top + 120} {cx + 230} {top + 230} {cx + 330} {top + 330} "
-         f"C{cx + 260} {top + 320} {cx + 230} {top + 360} {cx + 170} {top + 350} C{cx + 120} {top + 380} {cx + 60} {top + 340} {cx + 20} {top + 360} "
-         f"C{cx - 40} {top + 260} {cx - 90} {top + 140} {cx - 110} {top + 20} Z")
-    b = (f"M{cx - 110} {top + 20} L{cx + 110} {top + 20} C{cx + 200} {top + 90} {cx + 300} {top + 170} {cx + 420} {top + 230} "
-         f"C{cx + 350} {top + 250} {cx + 320} {top + 300} {cx + 250} {top + 300} C{cx + 190} {top + 340} {cx + 120} {top + 300} {cx + 70} {top + 330} "
-         f"C{cx + 0} {top + 240} {cx - 70} {top + 130} {cx - 110} {top + 20} Z")
-    p.add(f'<path d="{lerp_path(a, b, k)}" fill="{p.col("#6e6e6e", True)}" stroke="{p.col("#111")}" stroke-width="10"/>')
+    cx, top, tip = 948, 170, 900          # the blade runs from the guard down into the rock
+    # the cape: a thin strip of cloth knotted on the guard, rippling out in the wind
+    t = f / 10 * 2 * math.pi
+    upper, lower = [], []
+    n, length = 28, 760
+    for i in range(n + 1):
+        u = i / n
+        x = cx + 60 + u * length
+        y = top + 40 + u * 120 + math.sin(u * 3.2 * math.pi - t) * (14 + 70 * u)
+        half = 34 * (1 - u) + 7            # wide at the knot, a thin tail at the end
+        upper.append((x, y - half))
+        lower.append((x, y + half))
+    cape = "M" + " L".join(f"{x:.0f} {y:.0f}" for x, y in upper + lower[::-1]) + " Z"
+    p.add(f'<path d="{cape}" fill="{p.col("#6e6e6e", True)}" stroke="{p.col("#111")}" stroke-width="7" stroke-linejoin="round"/>')
+    p.add(f'<path d="M{cx + 40} {top + 4} C{cx + 90} {top - 10} {cx + 100} {top + 60} {cx + 60} {top + 70}" fill="none" '
+          f'stroke="{p.col("#555", True)}" stroke-width="22" stroke-linecap="round"/>')
     # blade, fuller, guard, grip, pommel
-    p.add(f'<path d="M{cx - 70} {top + 30} L{cx + 44} {top + 30} L{cx + 44} {tip - 50} L{cx} {tip} L{cx - 44} {tip - 50} Z" fill="{p.col("#efefef")}" stroke="{p.col("#111")}" stroke-width="12" stroke-linejoin="round"/>')
+    p.add(f'<path d="M{cx - 70} {top + 30} L{cx + 70} {top + 30} L{cx + 70} {tip - 70} L{cx} {tip} L{cx - 70} {tip - 70} Z" fill="{p.col("#efefef")}" stroke="{p.col("#111")}" stroke-width="12" stroke-linejoin="round"/>')
     p.add(f'<path d="M{cx} {top + 60} L{cx} {tip - 80}" stroke="{p.col("#555", True)}" stroke-width="16" stroke-linecap="round"/>')
     p.add(f'<rect x="{cx - 150}" y="{top + 2}" width="300" height="40" rx="8" fill="{p.col("#222")}"/>')
     p.add(f'<rect x="{cx - 16}" y="{top - 110}" width="32" height="112" fill="{p.col("#333")}"/>')
     p.add(f'<circle cx="{cx}" cy="{top - 124}" r="26" fill="{p.col("#555", True)}" stroke="{p.col("#111")}" stroke-width="8"/>')
+    # the rock goes in front, so the blade sinks into it: a dark gash where it went in, the rock's lip
+    # over the front of the gash, then cracks and chips around it
+    ry0, k = 270, 1.6
+    p.add(f'<g transform="translate({cx - 175 * k:.0f} {ry0}) scale({k})">'
+          f'<path d="{ROCK}" fill="{p.col("#8e8e8e")}" stroke="{p.col("#111")}" stroke-width="8"/>'
+          f'<path d="{ROCK_SHADE}" fill="{p.col("#6a6a6a")}"/></g>')
+    ey = ry0 + 212 * k                      # where the blade meets the rock
+    p.add(f'<ellipse cx="{cx}" cy="{ey}" rx="96" ry="26" fill="{p.col("#111")}"/>')
+    p.add(f'<path d="M{cx - 118} {ey} Q{cx - 80} {ey + 6} {cx - 50} {ey + 2} Q{cx - 20} {ey + 14} {cx + 10} {ey + 4} '
+          f'Q{cx + 50} {ey + 12} {cx + 82} {ey + 2} Q{cx + 104} {ey + 6} {cx + 118} {ey} L{cx + 118} {ey + 60} L{cx - 118} {ey + 60} Z" '
+          f'fill="{p.col("#8e8e8e")}"/>')
+    p.add(f'<path d="M{cx - 118} {ey} Q{cx - 80} {ey + 6} {cx - 50} {ey + 2} Q{cx - 20} {ey + 14} {cx + 10} {ey + 4} '
+          f'Q{cx + 50} {ey + 12} {cx + 82} {ey + 2} Q{cx + 104} {ey + 6} {cx + 118} {ey}" fill="none" stroke="{p.col("#111")}" stroke-width="8"/>')
+    for dx, dy, ex, ey2 in ((-96, 4, -190, 70), (-60, 14, -80, 130), (90, 4, 170, 80), (40, 14, 80, 140), (0, 16, -10, 110)):
+        p.add(f'<path d="M{cx + dx} {ey + dy} L{cx + ex} {ey + ey2}" stroke="{p.col("#222")}" stroke-width="8" stroke-linecap="round"/>')
+    for x, y, r in ((cx - 230, ey + 30, 16), (cx + 210, ey + 36, 13), (cx - 150, ey + 4, 10), (cx + 140, ey + 6, 9)):
+        p.add(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{p.col("#4a4a4a")}"/>')
 
 
 def greatsword_text(f: int):

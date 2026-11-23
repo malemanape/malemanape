@@ -18,14 +18,13 @@
   ],
 
   "about": [
-    { "key": "working_on",   "value": "SecondServe",    "note": "Surplus-food marketplace, I lead the backend" },
+    { "key": "working_on",   "live": "latest_repo" },
     { "key": "learning",     "value": "AI engineering", "note": "Starting with my first RAG app", "highlight": true },
     { "key": "class",        "value": "3rd-year IT",    "note": "Saint Louis University, Baguio" },
     { "key": "ask_me_about", "value": "Java & lore",    "note": "First language, and power systems" },
-    { "key": "open_to",      "value": "Collaborations",   "note": "I'm open to collaborating on interesting projects." },
+    { "key": "this_week",    "live": "this_week" },
     { "key": "fun_fact",     "value": "Ex tech boomer", "note": "Before college, tech and I were not friends" }
   ],
-
   "activity": {
     "cards": 4,
     "skip": []

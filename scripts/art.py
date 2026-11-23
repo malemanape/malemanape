@@ -7,11 +7,12 @@ Writes assets/<name>-light.svg and assets/<name>-dark.svg.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.svgkit import (MONO_ADV, MONO_STACK, PALETTES, THEMES, config, doc, dots, frames_css, panel,
+from lib.svgkit import (MONO_ADV, MONO_STACK, PALETTES, ROOT, THEMES, config, doc, dots, frames_css, panel,
                         text, text_width, write)
 
 W = 830
@@ -127,6 +128,26 @@ def typing(theme: str, cfg: dict) -> str:
 
 # ---------------------------------------------------------------- about tiles
 
+LIVE_FALLBACK = {"latest_repo": {"value": "Something new", "note": "Shows up after the next refresh"},
+                 "this_week": {"value": "Counting...", "note": "Shows up after the next refresh"}}
+
+
+def about_tiles(cfg: dict) -> list[dict]:
+    """The config's About tiles, with the "live" ones filled from what live.py found."""
+    made = ROOT / "generated" / "live.json"
+    found = json.loads(made.read_text(encoding="utf-8")) if made.exists() else {}
+    return [{**a, **found.get(a["live"], LIVE_FALLBACK.get(a["live"], {}))} if a.get("live") else a for a in cfg["about"]]
+
+
+def fit(s: str, size: float, max_w: float, **kw) -> str:
+    """s, cut with an ellipsis if it is wider than max_w."""
+    if text_width(s, size, **kw) <= max_w:
+        return s
+    while s and text_width(s + "…", size, **kw) > max_w:
+        s = s[:-1]
+    return s.rstrip() + "…"
+
+
 def about(theme: str, cfg: dict) -> str:
     c = PALETTES[theme]
     cols, tile_h, gap = 3, 92, 3
@@ -137,7 +158,8 @@ def about(theme: str, cfg: dict) -> str:
     body = f"<defs>{dots('ad', c['ink'])}</defs>"
     body += f'<rect x="12" y="12" width="{w}" height="{h}" fill="url(#ad)"/>'
     body += f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" fill="{c["ink"]}"/>'
-    for i, a in enumerate(cfg["about"]):
+    tiles = about_tiles(cfg)
+    for i, a in enumerate(tiles):
         r, col = divmod(i, cols)
         x = x0 + 3 + col * (tw + gap)
         y = y0 + 3 + r * (tile_h + gap)
@@ -145,9 +167,9 @@ def about(theme: str, cfg: dict) -> str:
         bg, fg, tag = (c["ink"], c["card"], c["on_ink_accent"]) if hi else (c["card"], c["ink"], c["accent"])
         body += f'<rect x="{x:.1f}" y="{y}" width="{tw:.1f}" height="{tile_h}" fill="{bg}"/>'
         body += text("// " + a["key"], x + 18, y + 26, 11.5, tag, mono=True, bold=True)
-        body += text(a["value"], x + 18, y + 56, 27, fg, wght=700, wdth=70)
-        body += text(a["note"], x + 18, y + 77, 11.5, fg, wght=400, extra=' opacity="0.8"')
-    label = "About El: " + "; ".join(f"{a['key'].replace('_', ' ')}: {a['value']}, {a['note']}" for a in cfg["about"])
+        body += text(fit(a["value"], 27, tw - 36, wght=700, wdth=70), x + 18, y + 56, 27, fg, wght=700, wdth=70)
+        body += text(fit(a["note"], 11.5, tw - 36, wght=400), x + 18, y + 77, 11.5, fg, wght=400, extra=' opacity="0.8"')
+    label = "About El: " + "; ".join(f"{a['key'].replace('_', ' ')}: {a['value']}, {a['note']}" for a in tiles)
     return doc(W, h + 12, body, label)
 
 

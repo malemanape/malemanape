@@ -4,7 +4,8 @@
     python scripts/live.py --sample   # made-up numbers, for previewing without a token
 
 Writes generated/{stats,streak,year,ticker}-{light,dark}.svg, generated/repo-<n>-{light,dark}.svg
-and generated/activity.json (which repo each card shows, for readme.py).
+generated/activity.json (which repo each card shows, for readme.py)
+and generated/live.json (the live About tiles, for art.py).
 Only needs fontTools (pip install fonttools).
 """
 from __future__ import annotations
@@ -454,6 +455,20 @@ def short_ago(iso: str) -> str:
     return ago(iso).replace("pushed ", "")
 
 
+def live_tiles(d) -> dict:
+    """Values for the About tiles that fill themselves: what you pushed last, and your week."""
+    tiles = {}
+    if d["cards"]:
+        r = d["cards"][0]
+        tiles["latest_repo"] = {"value": r["name"], "note": r.get("description") or ago(r["pushedAt"]).capitalize()}
+    week = d["days"][-7:]
+    n, active = sum(c for _, c in week), sum(1 for _, c in week if c)
+    tiles["this_week"] = ({"value": f"{n} contribution{'s' if n != 1 else ''}",
+                           "note": "Active every day this week" if active == 7 else f"Active {active} of the last 7 days"} if n
+                          else {"value": "Recharging", "note": "Nothing pushed in the last 7 days"})
+    return tiles
+
+
 if __name__ == "__main__":
     cfg = config()
     token = os.environ.get("PROFILE_TOKEN") or os.environ.get("GITHUB_TOKEN")
@@ -473,5 +488,7 @@ if __name__ == "__main__":
     # readme.py links the cards from this list, since the repos change from run to run
     (ROOT / "generated" / "activity.json").write_text(
         json.dumps([r["nameWithOwner"] for r in d["cards"]], indent=2) + "\n", encoding="utf-8")
+    # art.py fills the live About tiles from this
+    (ROOT / "generated" / "live.json").write_text(json.dumps(live_tiles(d), indent=2) + "\n", encoding="utf-8")
     cur, longest = streaks(d["days"])
     print(f"drew cards: {d['total']} contributions, streak {cur} (best {longest}), aura {aura(d)}, {len(d['cards'])} repo cards: " + ", ".join(r["name"] for r in d["cards"]))

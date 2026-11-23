@@ -1,0 +1,10 @@
+{
+  "latest_repo": {
+    "value": "my-portfolio",
+    "note": "My portfolio as a comic episode."
+  },
+  "this_week": {
+    "value": "204 contributions",
+    "note": "Active 6 of the last 7 days"
+  }
+}

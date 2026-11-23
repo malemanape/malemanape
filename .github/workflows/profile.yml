@@ -1,10 +1,10 @@
 # Redraws the live cards (stats, streak, contribution year, featured repos) and the README.
-# Runs every 6 hours, when you change the config or scripts, and by hand from the Actions tab.
+# Runs every hour, when you change the config or scripts, and by hand from the Actions tab.
 name: profile
 
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
   push:
     branches: [main]

@@ -35,6 +35,7 @@ query($login: String!) {
   user(login: $login) {
     id
     contributionsCollection {
+      contributionYears
       totalCommitContributions
       restrictedContributionsCount
       contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } }
@@ -97,13 +98,20 @@ def fetch(cfg: dict, token: str) -> dict:
              for i, name in enumerate(wanted)]
     found = gql("query {" + "\n".join(parts) + "}", {}, token) if parts else {}
     looked_up = [r for r in (found.get(f"r{i}") for i in range(len(wanted))) if r]
+    # lifetime commits: GitHub only counts a year at a time, so ask for every year you've been active
+    years = cc.get("contributionYears") or []
+    per_year = gql("query($login: String!) { user(login: $login) {" + "".join(
+        f' y{y}: contributionsCollection(from: "{y}-01-01T00:00:00Z", to: "{y}-12-31T23:59:59Z")'
+        " { totalCommitContributions restrictedContributionsCount }" for y in years) + " } }",
+        {"login": user}, token).get("user") or {} if years else {}
+    lifetime = sum(v["totalCommitContributions"] + v["restrictedContributionsCount"] for v in per_year.values())
     return dict(
         days=[(x["date"], x["contributionCount"]) for x in days],
         total=cc["contributionCalendar"]["totalContributions"],
         commits=cc["totalCommitContributions"] + cc["restrictedContributionsCount"],
         prs=d["pullRequests"]["totalCount"], issues=d["issues"]["totalCount"],
         contributed=d["repositoriesContributedTo"]["totalCount"], stars=stars,
-        langs=langs, cards=looked_up[: act.get("cards", 4)],
+        langs=langs, cards=looked_up[: act.get("cards", 4)], lifetime=lifetime,
         pushes=latest_pushes(looked_up),
     )
 
@@ -159,7 +167,7 @@ def sample(cfg: dict) -> dict:
                         "author": {"user": {"login": u if k == 0 else f"mate{k}"}}} for k in range(ppl)]}}})
               for n, (lang, col), h, msg, desc, ppl in fake]
     pushes = [(n, msg, (NOW - dt.timedelta(hours=h)).isoformat()) for n, _, h, msg, _, _ in fake]
-    return dict(pushes=pushes, days=days, total=sum(c for _, c in days), commits=412, prs=37, issues=12, contributed=6, stars=9,
+    return dict(lifetime=720, pushes=pushes, days=days, total=sum(c for _, c in days), commits=412, prs=37, issues=12, contributed=6, stars=9,
                 langs=langs, cards=recent[: cfg.get("activity", {}).get("cards", 4)])
 
 
@@ -179,12 +187,10 @@ def streaks(days):
     return cur, longest
 
 
-RANKS = ((1500, "S", "Legend"), (700, "A+", "Elite"), (350, "A", "Rising star"),
-         (180, "B+", "Climbing"), (80, "B", "Warming up"), (0, "C", "Just spawned"))
-
-
-def aura_score(d) -> int:
-    return d["commits"] + 3 * d["prs"] + d["issues"] + 4 * d["stars"] + 5 * d["contributed"]
+# aura ranks by lifetime commits: (lowest count, grade, title)
+RANKS = ((0, "E", "Just spawned"), (50, "D", "Warming up"), (250, "C", "Climbing"), (1_000, "B", "Rising star"),
+         (5_000, "A", "Elite"), (10_000, "S", "Legend"), (50_000, "SS", "Mythic"), (100_000, "SSS", "Transcendent"),
+         (1_000_000, "EX", "Beyond the scale"))
 
 
 def aura(d) -> str:
@@ -192,15 +198,14 @@ def aura(d) -> str:
 
 
 def rank(d) -> tuple[str, str, float, int, str]:
-    """(grade, title, progress to the next grade 0..1, points still needed, next grade)."""
-    score = aura_score(d)
-    for i, (cut, grade, title) in enumerate(RANKS):
-        if score >= cut:
-            if i == 0:
-                return grade, title, 1.0, 0, ""
-            nxt_cut, nxt, _ = RANKS[i - 1]
-            return grade, title, (score - cut) / (nxt_cut - cut), nxt_cut - score, nxt
-    return RANKS[-1][1], RANKS[-1][2], 0.0, RANKS[-2][0] - score, RANKS[-2][1]
+    """(grade, title, progress through this grade 0..1, commits to the next grade, next grade)."""
+    n = d.get("lifetime", 0)
+    i = max(k for k, (cut, _, _) in enumerate(RANKS) if n >= cut)
+    cut, grade, title = RANKS[i]
+    if i == len(RANKS) - 1:
+        return grade, title, 1.0, 0, ""
+    nxt_cut, nxt, _ = RANKS[i + 1]
+    return grade, title, (n - cut) / (nxt_cut - cut), nxt_cut - n, nxt
 
 
 def ago(iso: str) -> str:
@@ -265,12 +270,12 @@ def stats_card(theme, d):
     pts = " ".join(f"{bx + (48 if i % 2 == 0 else 26) * math.cos(i * math.pi / 8 - math.pi / 2):.1f},"
                    f"{by + (48 if i % 2 == 0 else 26) * math.sin(i * math.pi / 8 - math.pi / 2):.1f}" for i in range(16))
     body += (f'<polygon class="burst" points="{pts}" fill="{c["accent"]}" stroke="{c["ink"]}" stroke-width="3" stroke-linejoin="round"/>'
-             + text(g, bx, by + 10, 30, c["white"], wght=700, wdth=70, anchor="middle")
+             + text(g, bx, by + 10, {1: 30, 2: 26, 3: 20}.get(len(g), 20), c["white"], wght=700, wdth=70, anchor="middle")
              + text("AURA", bx, by + 25, 8.5, c["white"], wght=700, ls=1, anchor="middle"))
-    body += text("AURA RANK", 138, 58, 10.5, c["muted"], mono=True, bold=True, ls=1)
+    body += text(f"AURA RANK · {d.get('lifetime', 0):,} LIFETIME COMMITS", 138, 58, 10.5, c["muted"], mono=True, bold=True, ls=1)
     body += text(title, 138, 88, 28, c["ink"], wght=700, wdth=70)
     body += segs(c, 138, 100, round(prog * 10), seg=13, gap=3.5, h=9, color=c["accent"])
-    body += text(f"{need:,} pts to {nxt}" if nxt else "Max rank. Keep it", 138, 126, 11.5, c["muted"], wght=500)
+    body += text(f"{need:,} commits to rank {nxt}" if nxt else "Off the scale. Nothing left to rank", 138, 126, 11.5, c["muted"], wght=500)
     # the numbers, in two labelled groups
     groups = [("PAST YEAR", [(d["commits"], "COMMITS"), (d["prs"], "PULL REQS"), (d["issues"], "ISSUES")]),
               ("AROUND GITHUB", [(d["stars"], "STARS"), (d["contributed"], "OTHER REPOS")])]
@@ -310,7 +315,7 @@ def stats_card(theme, d):
         body += segs(c, x0 + 160, y - 10, max(1, round(share / lead * 10)), seg=14, gap=3.5, h=10, color=col)
         body += text(f"{share * 100:.0f}%", x0 + pw - 18, y, 13, c["ink"], wght=700, anchor="end")
     body += text("Share of code across my repos. Top language fills the bar.", x0 + 18, ph - 12, 10, c["muted"], wght=400)
-    label = (f"Power level: aura rank {g} ({title}), {d['commits']} commits in the past year, {d['prs']} pull requests, "
+    label = (f"Power level: aura rank {g} ({title}) from {d.get('lifetime', 0)} lifetime commits, {d['commits']} commits in the past year, {d['prs']} pull requests, "
              f"{d['issues']} issues, {d['stars']} stars, contributed to {d['contributed']} repos. Top languages: "
              + ", ".join(f"{n} {v / total * 100:.0f}%" for n, (v, _) in top))
     css = (f".burst{{transform-origin:{bx}px {by}px;animation:spin 24s linear infinite}}"

@@ -15,23 +15,23 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 
 *ἀρετή (arete): excellence, the full realization of one's potential. The idea I build around.*
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=15028e2e"><img src="assets/about-light.svg?v=b50a3b80" alt="About El" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=d7f7d8a9"><img src="assets/about-light.svg?v=9bb1eeeb" alt="About El" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg?v=8ac44398"><img src="assets/h-stack-light.svg?v=9d73c49c" alt="Stack" width="830"></picture></h3>
 <p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stack-dark.svg?v=f89b9965"><img src="generated/stack-light.svg?v=e2105dfb" alt="Stack: the languages and tools I build with" width="830"></picture></a></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stats-dark.svg?v=3360faf7"><img src="assets/h-stats-light.svg?v=a9f79ca3" alt="Stats" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=c62ee080"><img src="generated/stats-light.svg?v=4223589e" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=6470f2e7"><img src="generated/streak-light.svg?v=8ac364d8" alt="Contribution streak" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=44b0f466"><img src="generated/year-light.svg?v=fde5c6b4" alt="Contributions over the past year" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=a096de04"><img src="generated/stats-light.svg?v=2748aef4" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=30368539"><img src="generated/streak-light.svg?v=8bebcf22" alt="Contribution streak" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=fff47d22"><img src="generated/year-light.svg?v=8b51d92e" alt="Contributions over the past year" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-gallery-dark.svg?v=fa0ee676"><img src="assets/h-gallery-light.svg?v=df6e154a" alt="The gallery" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg?v=921b5b74"><img src="assets/gallery-light.svg?v=462d2c0f" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-activity-dark.svg?v=4f0ceaf0"><img src="assets/h-activity-light.svg?v=751602b1" alt="Recent activity" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=a5fc84b2"><img src="generated/ticker-light.svg?v=886f27d0" alt="Latest pushes" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=95bfa1e3"><img src="generated/ticker-light.svg?v=92dd553f" alt="Latest pushes" width="830"></picture></p>
 <p align="center">
-  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=bec5b22d"><img src="generated/repo-1-light.svg?v=d62bcac9" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=61c43f99"><img src="generated/repo-1-light.svg?v=a40b577b" alt="my-portfolio" width="412"></picture></a>
   <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=2772bc08"><img src="generated/repo-2-light.svg?v=a3441c66" alt="Ka-dugo" width="412"></picture></a>
 </p>
 <p align="center">

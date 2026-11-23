@@ -79,6 +79,31 @@ def gql(query: str, variables: dict, token: str) -> dict:
     return out.get("data") or {}
 
 
+# accounts that commit but aren't people: AI agents and automation (GitHub marks most bots itself)
+NOT_PEOPLE = {"claude", "anthropic-claude", "copilot", "copilot-swe-agent", "github-copilot", "devin-ai-integration",
+              "codex", "openai-codex", "cursoragent", "cursor-agent", "jules", "google-labs-jules", "sweep-ai",
+              "dependabot", "renovate", "github-actions", "actions-user", "web-flow"}
+
+
+def is_person(login: str, kind: str = "User", extra: set[str] = frozenset()) -> bool:
+    """A real teammate: a User account that isn't a bot or an AI agent."""
+    login = login.lower()
+    return kind == "User" and not login.endswith("[bot]") and login not in NOT_PEOPLE | extra
+
+
+def contributors(full_name: str, token: str, extra: set[str] = frozenset()) -> set[str] | None:
+    """The people who have committed to the repo (GitHub's contributor list), bots and AI agents left out.
+    None if GitHub won't say, e.g. a brand-new or empty repo."""
+    req = urllib.request.Request(f"https://api.github.com/repos/{full_name}/contributors?per_page=100",
+                                 headers={"Authorization": f"bearer {token}", "User-Agent": "el-profile"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return {u["login"].lower() for u in json.load(r) if is_person(u["login"], u.get("type", "User"), extra)}
+    except Exception as e:  # 204 (empty repo), rate limit, network: fall back to the recent commits
+        print(f"couldn't list contributors of {full_name} ({e})", file=sys.stderr)
+        return None
+
+
 def fetch(cfg: dict, token: str) -> dict:
     user = cfg["user"]
     d = gql(QUERY, {"login": user}, token)["user"]
@@ -94,11 +119,14 @@ def fetch(cfg: dict, token: str) -> dict:
     # your public repos, by latest push; the cards and the ticker come from these
     act = cfg.get("activity", {})
     skip = {x.lower() for x in act.get("skip", [])} | {user.lower()}
+    not_people = {x.lower() for x in act.get("not_people", [])}  # more accounts to never count as teammates
     wanted = [r["name"] for r in d["recent"]["nodes"] if not r["isArchived"] and r["name"].lower() not in skip][:8]
     parts = [f'r{i}: repository(owner: {json.dumps(user)}, name: {json.dumps(name)}) {{{REPO_FIELDS % json.dumps(d["id"])}}}'
              for i, name in enumerate(wanted)]
     found = gql("query {" + "\n".join(parts) + "}", {}, token) if parts else {}
     looked_up = [r for r in (found.get(f"r{i}") for i in range(len(wanted))) if r]
+    for repo in looked_up[: act.get("cards", 4)]:
+        repo["crew"] = contributors(repo["nameWithOwner"], token, not_people)
     # lifetime commits: GitHub only counts a year at a time, so ask for every year you've been active
     years = cc.get("contributionYears") or []
     per_year = gql("query($login: String!) { user(login: $login) {" + "".join(
@@ -132,10 +160,13 @@ def latest_pushes(repos: list, n: int = 6) -> list[tuple[str, str, str]]:
 
 
 def people(repo: dict) -> set[str]:
-    """Who committed to the default branch lately, bots left out. Tells solo work from team work."""
+    """Who worked on the repo, bots left out. Tells solo work from team work: everyone GitHub lists
+    as a contributor, or, if it couldn't say, whoever committed to the default branch lately."""
+    if repo.get("crew") is not None:
+        return repo["crew"]
     nodes = ((((repo.get("defaultBranchRef") or {}).get("target") or {}).get("history") or {}).get("nodes")) or []
     logins = {(((n.get("author") or {}).get("user") or {}).get("login") or "").lower() for n in nodes}
-    return {x for x in logins if x and not x.endswith("[bot]")}
+    return {x for x in logins if x and is_person(x)}
 
 
 def sample(cfg: dict) -> dict:

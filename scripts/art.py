@@ -7,9 +7,12 @@ Writes assets/<name>-light.svg and assets/<name>-dark.svg.
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
+import math
 import sys
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.svgkit import (MONO_ADV, MONO_STACK, PALETTES, ROOT, THEMES, config, doc, dots, frames_css, panel,
@@ -44,9 +47,41 @@ def el_on_rock(c: dict, uid: str) -> str:
 
 # ---------------------------------------------------------------- El running, side-on
 
-def el_runner(c, uid):
+def _grip(ink, acc):
+    return (f'<path d="M-24 -2.6 L-2 -2.6 L-2 2.6 L-24 2.6 Z" fill="{ink}"/>'
+            f'<circle cx="-27" cy="0" r="4.2" fill="{acc}" stroke="{ink}" stroke-width="2"/>')
+
+
+def _haft(ink, x0, x1, r=2.6):
+    return f'<path d="M{x0} -{r} L{x1} -{r} L{x1} {r} L{x0} {r} Z" fill="{ink}"/>'
+
+
+# El's weapons, each drawn along +x from where his hand holds it (x = 0); the year card picks one a day
+WEAPONS = {
+    "sword": lambda ink, acc, paper: (
+        _grip(ink, acc)
+        + f'<path d="M-3 -14 L3 -14 L3 14 L-3 14 Z" fill="{ink}"/>'
+        f'<path d="M3 -9 L90 -9 L104 0 L90 9 L3 9 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        f'<path d="M10 0 L84 0" stroke="{acc}" stroke-width="3" stroke-linecap="round"/>'),
+    "axe": lambda ink, acc, paper: (
+        # the same axe El splits the rock with on the portfolio (AuraFarmer.astro), turned to lie along +x
+        f'<g transform="rotate(90) scale(0.55)"><rect x="-6" y="-178" width="12" height="208" rx="3" fill="{ink}"/><path d="M-6 -164 L-18 -162 L-18 -146 L-6 -144 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M6 -166 L26 -166 L60 -200 L65 -150 L54 -94 L28 -136 L6 -142 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M53 -186 L57 -150 L49 -110" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.5"/></g>'),
+    "hammer": lambda ink, acc, paper: (
+        # the same hammer El splits the rock with on the portfolio (AuraFarmer.astro), turned to lie along +x
+        f'<g transform="rotate(90) scale(0.55)"><rect x="-6" y="-130" width="12" height="160" fill="{ink}"/><rect x="-40" y="-176" width="80" height="50" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M-24 -176 V-126 M24 -176 V-126" stroke="{ink}" stroke-width="4"/></g>'),
+    "halberd": lambda ink, acc, paper: (
+        # the same halberd El splits the rock with on the portfolio (AuraFarmer.astro); it's long, so a bit smaller
+        f'<g transform="rotate(90) scale(0.42)"><rect x="-5" y="-216" width="10" height="252" rx="2" fill="{ink}"/><path d="M0 -296 L9 -240 L4 -214 L-4 -214 L-9 -240 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M5 -208 L22 -210 L54 -230 L58 -186 L50 -148 L22 -170 L5 -170 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M48 -218 L52 -186 L45 -158" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.5"/><path d="M-5 -206 L-46 -184 L-5 -186 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M-7 -170 H7 M-7 -160 H7" stroke="{paper}" stroke-width="2"/></g>'),
+    "keyboard": lambda ink, acc, paper: (
+        f'<path d="M-6 -13 L92 -13 L92 13 L-6 13 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        + "".join(f'<rect x="{1 + k * 8.6:.1f}" y="{-8 + r * 6}" width="6" height="4" fill="{acc if (r, k) == (1, 9) else ink}"/>'
+                  for r in range(3) for k in range(10))),
+}
+
+
+def el_runner(c, uid, weapon="sword"):
     """El in profile, facing right, feet at (0,0), about 104 units tall. Legs swing from the hip,
-    the body bobs twice per stride, the cape ripples, and the sword rides on his right shoulder."""
+    the body bobs twice per stride, the cape ripples, and the weapon (see WEAPONS) rides on his right shoulder."""
     ink, acc, paper = c["ink"], c["accent"], c["paper"]
     leg = ('<path d="M-5 0 L6 0 L7 -20 L5 -44 L-6 -44 L-5 -20 Z" fill="{f}"/>'
            '<path d="M-7 -5 L11 -5 L12 0 L-7 0 Z" fill="{f}"/>')
@@ -56,14 +91,9 @@ def el_runner(c, uid):
     head = ("M-4 -100 C-4 -110 2 -116 10 -116 C18 -116 22 -110 22 -102 C22 -94 16 -88 8 -88 C0 -88 -4 -93 -4 -100 Z")
     hair = ("M-6 -102 C-8 -112 -2 -120 8 -121 L4 -127 L14 -122 L16 -130 L21 -121 L28 -124 L24 -115 "
             "C27 -111 27 -105 24 -101 L18 -108 L12 -104 L6 -110 L0 -102 Z")
-    # the sword, drawn along +x from the guard, then laid back over the shoulder
-    sword = (f'<g transform="translate(0 -84) rotate(-155)">'
-             f'<path d="M-24 -2.6 L-2 -2.6 L-2 2.6 L-24 2.6 Z" fill="{ink}"/>'
-             f'<circle cx="-27" cy="0" r="4.2" fill="{acc}" stroke="{ink}" stroke-width="2"/>'
-             f'<path d="M-3 -14 L3 -14 L3 14 L-3 14 Z" fill="{ink}"/>'
-             f'<path d="M3 -9 L90 -9 L104 0 L90 9 L3 9 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
-             f'<path d="M10 0 L84 0" stroke="{acc}" stroke-width="3" stroke-linecap="round"/>'
-             f'</g>')
+    held = WEAPONS.get(weapon, WEAPONS["sword"])(ink, acc, paper)
+    # laid back over the right shoulder, the business end up and behind him
+    sword = f'<g transform="translate(0 -84) rotate(-155)">{held}</g>'
     arm = f'<path d="M4 -84 C8 -76 12 -74 17 -76" fill="none" stroke="{ink}" stroke-width="7" stroke-linecap="round"/>'
     hand = f'<circle cx="17" cy="-76" r="4.8" fill="{ink}"/>'
     return (
@@ -91,8 +121,55 @@ def runner_css(uid, stride=0.6):
 
 # ---------------------------------------------------------------- banner
 
+# ---------------------------------------------------------------- the time of day, in your time zone
+
+PERIODS = (  # (from hour, name, what the visitor says)
+    (5, "morning", "morning, El. coffee first (o_o)"),
+    (10, "day", "yes El, we see the fit (¬_¬)"),
+    (16, "sunset", "the sunset arc hits different (^_^)"),
+    (19, "night", "El, go to sleep (-_-) zZ"),
+)
+
+
+def period(cfg: dict) -> tuple[str, str]:
+    """(name, visitor line) for the hour right now where you live. The Action redraws every hour."""
+    hour = dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).hour
+    if "--period" in sys.argv:  # for previews: --period night
+        name = sys.argv[sys.argv.index("--period") + 1]
+        return next((n, line) for _, n, line in PERIODS if n == name)
+    started = [p for p in PERIODS if hour >= p[0]]
+    _, name, line = started[-1] if started else PERIODS[-1]  # before 5 am it's still night
+    return name, line
+
+
+def sky(c: dict, theme: str, name: str) -> str:
+    """The sky behind El, right of the black stripe: sunrise, a high sun, sunset, or stars and a moon."""
+    dark = theme == "dark"
+    area = '<clipPath id="sky"><polygon points="672,3 827,3 827,297 502,297"/></clipPath>'
+    if name == "morning":
+        fill = (f'<rect x="0" y="0" width="830" height="300" fill="{"#3B2F22" if dark else "#F6DDB6"}" opacity="0.7"/>'
+                f'<circle cx="770" cy="236" r="34" fill="#F2B35B"/>')
+    elif name == "sunset":
+        fill = (f'<rect x="0" y="0" width="830" height="300" fill="{"#4A2A1C" if dark else "#F3B68A"}" opacity="0.75"/>'
+                f'<circle cx="700" cy="250" r="52" fill="#E8693A"/>'
+                f'<path d="M560 214 H827 M590 196 H827" stroke="#E8693A" stroke-width="3" opacity="0.5"/>')
+    elif name == "night":
+        stars = ((612, 40), (700, 26), (742, 92), (806, 128), (650, 118), (780, 196), (690, 168), (812, 24), (560, 180))
+        fill = (f'<rect x="0" y="0" width="830" height="300" fill="{"#0B1222" if dark else "#2E3F66"}"/>'
+                + "".join(f'<circle class="tw{i % 3}" cx="{x}" cy="{y}" r="{1.6 + (i % 3) * 0.6}" fill="#F4EFE4"/>'
+                          for i, (x, y) in enumerate(stars))
+                + '<path d="M806 40 A22 22 0 1 0 806 84 A17 17 0 1 1 806 40 Z" fill="#F4EFE4"/>')
+    else:  # day
+        rays = "".join(f'<path d="M{802 + 22 * math.cos(k * math.pi / 4):.1f} {44 + 22 * math.sin(k * math.pi / 4):.1f} '
+                       f'L{802 + 30 * math.cos(k * math.pi / 4):.1f} {44 + 30 * math.sin(k * math.pi / 4):.1f}" '
+                       f'stroke="#F2B35B" stroke-width="3" stroke-linecap="round"/>' for k in range(8))
+        fill = f'<g class="spin">{rays}</g><circle cx="802" cy="44" r="15" fill="#F2B35B"/>'
+    return f"<defs>{area}</defs><g clip-path=\"url(#sky)\">{fill}</g>"
+
+
 def banner(theme: str, cfg: dict) -> str:
     c = PALETTES[theme]
+    when, says = period(cfg)
     first, _, last = cfg["name"].upper().rpartition(" D. ")
     line1, line2 = (first, "D. " + last) if first else (cfg["name"].upper(), "")
     body = (
@@ -107,21 +184,25 @@ def banner(theme: str, cfg: dict) -> str:
     )
     tag_w = text_width(cfg["tagline"], 14, 700, 100, 1) + 24
     body += f'<rect x="40" y="252" width="{tag_w:.0f}" height="28" fill="{c["ink"]}"/>' + text(cfg["tagline"], 52, 271, 14, c["card"], ls=1)
+    body += sky(c, theme, when)
     body += f'<g transform="translate(585 50) scale(0.735)">{el_on_rock(c, "b")}</g>'
     # the comment that pops in from nowhere
     body += (
         '<g class="pop">'
-        f'<rect x="420" y="40" width="168" height="46" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
+        f'<rect x="420" y="40" width="{text_width(says, 12, 600) + 22:.0f}" height="46" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
         + text("@visitor", 430, 57, 10.5, c["accent"], wght=700)
-        + text("yes El, we see the fit (¬_¬)", 430, 76, 12, c["ink"], wght=600)
+        + text(says, 430, 76, 12, c["ink"], wght=600)
         + "</g>"
     )
     css = (
         ".pop{opacity:0;transform-origin:504px 63px;animation:pop 6s infinite}"
         "@keyframes pop{0%,20%{opacity:0;transform:scale(.6) rotate(-4deg)}27%{opacity:1;transform:scale(1.06) rotate(1deg)}"
         "31%,85%{opacity:1;transform:scale(1) rotate(0)}92%,100%{opacity:0;transform:scale(.9)}}"
+        ".spin{transform-origin:802px 44px;animation:spin 30s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}"
+        ".tw0,.tw1,.tw2{animation:tw 3s ease-in-out infinite alternate}.tw1{animation-delay:-1s}.tw2{animation-delay:-2s}"
+        "@keyframes tw{from{opacity:1}to{opacity:.25}}"
     )
-    return doc(W, 300, body, f"{cfg['name']}: {cfg['tagline'].lower()} El, seen from behind, stands on a rock with his cape in the wind.", css)
+    return doc(W, 300, body, f"{cfg['name']}: {cfg['tagline'].lower()} El, seen from behind, stands on a rock with his cape in the wind, {when} sky behind him.", css)
 
 
 # ---------------------------------------------------------------- typing line
@@ -403,7 +484,11 @@ for _key, _title in HEADINGS.items():
 
 if __name__ == "__main__":
     cfg = config()
-    only = sys.argv[1:] or list(BUILDERS)
+    args = sys.argv[1:]
+    if "--period" in args:  # preview a time of day: python scripts/art.py banner --period night
+        i = args.index("--period")
+        args = args[:i] + args[i + 2:]
+    only = args or list(BUILDERS)
     for name in only:
         for theme in THEMES:
             p = write(name, theme, BUILDERS[name](theme, cfg))

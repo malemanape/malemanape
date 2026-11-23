@@ -1,13 +1,15 @@
-"""Static art for the profile README. Run once (and again after editing profile.config.json):
+"""The art that comes from the config and the clock: banner (with its time-of-day sky), typing line,
+About tiles, section headings, the commit joke, dodge.exe and the footer. The Action reruns it every hour.
 
-    python scripts/art.py            # everything except the ASCII gallery
-    python scripts/gallery.py        # the dense ASCII gallery (needs rsvg-convert + Pillow)
+    python scripts/art.py                          # everything except the ASCII gallery (that's gallery.py)
+    python scripts/art.py banner --period night    # one image, at a chosen time of day
 
 Writes assets/<name>-light.svg and assets/<name>-dark.svg.
 """
 from __future__ import annotations
 
 import datetime as dt
+import functools
 import json
 import math
 import sys
@@ -15,8 +17,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.svgkit import (MONO_ADV, MONO_STACK, PALETTES, ROOT, THEMES, config, doc, dots, frames_css, panel,
-                        text, text_width, write)
+from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, text, text_width, write
 
 W = 830
 
@@ -93,9 +94,9 @@ def _greatbow(ink, acc, paper):
         Li = [(x + (cx - x) * 0.62, y) for (x, y), (cx, _) in zip(L, C)]
         Ri = [(x + (cx - x) * 0.62, y) for (x, y), (cx, _) in zip(R, C)]
         core = Li[1:-3] + Ri[1:-3][::-1]
-        out += f'<path d="M' + " L".join(f"{x:.1f} {y:.1f}" for x, y in core) + f' Z" fill="{ink}"/>'
+        out += '<path d="M' + " L".join(f"{x:.1f} {y:.1f}" for x, y in core) + f' Z" fill="{ink}"/>'
         inlay = C[2:11]
-        out += f'<path d="M' + " L".join(f"{x:.1f} {y:.1f}" for x, y in inlay) + f'" fill="none" stroke="{acc}" stroke-width="1.8" stroke-linecap="round"/>'
+        out += '<path d="M' + " L".join(f"{x:.1f} {y:.1f}" for x, y in inlay) + f'" fill="none" stroke="{acc}" stroke-width="1.8" stroke-linecap="round"/>'
         tx, ty = C[-1]
         out += f'<path d="M{tx - 2:.1f} {ty:.1f} L{tx + 5:.1f} {ty - 3 * sign:.1f} L{tx + 3:.1f} {ty + 2 * sign:.1f} Z" fill="{paper}" stroke="{ink}" stroke-width="1.8" stroke-linejoin="round"/>'
         tips.append((tx + 2, ty))
@@ -196,9 +197,8 @@ WEAPONS = {
         + "".join(f'<rect x="{4 + k * 8.4:.1f}" y="{-8 + r * 6}" width="6" height="4" rx="0.8" fill="{acc if (r, k) == (1, 9) else paper}"/>'
                   for r in range(3) for k in range(10))),
 }
-# the lineup, in order (the design board's weapon sheet shows them the same way)
 WEAPONS["greatbow"] = lambda ink, acc, paper: f'<g transform="rotate(90)">{_greatbow(ink, acc, paper)}</g>'
-# one a day, Monday to Sunday (the design board's arsenal shows them the same way)
+# one a day, Monday to Sunday, in this order (the design board's arsenal shows them the same way)
 WEAPONS = {k: WEAPONS[k] for k in ("sword", "zweihander", "axe", "hammer", "halberd", "greatbow", "keyboard")}
 WEAPON_NAMES = {"sword": "greatsword", "zweihander": "zweihander", "axe": "greataxe", "hammer": "warhammer",
                 "halberd": "halberd", "greatbow": "greatbow", "keyboard": "keyboard"}
@@ -257,8 +257,6 @@ def runner_css(uid, stride=0.6):
             f"@keyframes {uid}bob{{from{{transform:translateY(0)}}to{{transform:translateY(-5px)}}}}")
 
 
-# ---------------------------------------------------------------- banner
-
 # ---------------------------------------------------------------- the time of day, in your time zone
 
 PERIODS = (  # (from hour, name, what the visitor says)
@@ -270,7 +268,7 @@ PERIODS = (  # (from hour, name, what the visitor says)
 
 
 def period(cfg: dict) -> tuple[str, str]:
-    """(name, visitor line) for the hour right now where you live. The Action redraws every hour."""
+    """(name, visitor line) for the hour right now where you live."""
     hour = dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).hour
     if "--period" in sys.argv:  # for previews: --period night
         name = sys.argv[sys.argv.index("--period") + 1]
@@ -280,7 +278,7 @@ def period(cfg: dict) -> tuple[str, str]:
     return name, line
 
 
-def sky(c: dict, theme: str, name: str) -> str:
+def sky(theme: str, name: str) -> str:
     """The sky behind El, right of the black stripe: sunrise, a high sun, sunset, or stars and a moon."""
     dark = theme == "dark"
     area = '<clipPath id="sky"><polygon points="672,3 827,3 827,297 502,297"/></clipPath>'
@@ -341,6 +339,8 @@ def shield_by_rock(c: dict) -> str:
             + stuck_arrow(c, -12, 26, -150) + stuck_arrow(c, 10, 46, -115) + "</g>")
 
 
+# ---------------------------------------------------------------- banner
+
 def banner(theme: str, cfg: dict) -> str:
     c = PALETTES[theme]
     when, says = period(cfg)
@@ -358,7 +358,7 @@ def banner(theme: str, cfg: dict) -> str:
     )
     tag_w = text_width(cfg["tagline"], 14, 700, 100, 1) + 24
     body += f'<rect x="40" y="252" width="{tag_w:.0f}" height="28" fill="{c["ink"]}"/>' + text(cfg["tagline"], 52, 271, 14, c["card"], ls=1)
-    body += sky(c, theme, when)
+    body += sky(theme, when)
     body += f'<g transform="translate(585 50) scale(0.735)">{el_on_rock(c, "b")}{shield_by_rock(c)}</g>'
     # the comment that pops in from nowhere
     body += (
@@ -396,7 +396,7 @@ def typing(theme: str, cfg: dict) -> str:
         spans.append((t, t + dur))
         t += dur
     total = t
-    body, css = "", f".caret{{animation:blink 1s steps(1) infinite}}@keyframes blink{{50%{{opacity:0}}}}"
+    body, css = "", ".caret{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}"
     for i, (p, (s, e)) in enumerate(zip(phrases, spans)):
         n = len(p) - 2
 
@@ -535,7 +535,10 @@ def dodge(theme: str, cfg: dict) -> str:
         x0 = start + off
         passes.append(((x0 + w - GUY_X) / SPEED) % T)
         jumps.append(((x0 - (GUY_X + GUY_W + 20)) / SPEED) % T)
-    pct = lambda t: f"{t / T * 100:.3f}%"
+
+    def pct(t):
+        return f"{t / T * 100:.3f}%"
+
     # El's jump: up with ease-out, down with ease-in, same arc as the portfolio
     kf = ["0%{transform:translateY(0)}"]
     for j in sorted(jumps):
@@ -558,7 +561,7 @@ def dodge(theme: str, cfg: dict) -> str:
         score_g += f'<g class="n n{n}">' + text(f"{n:03d}", 0, 0, 13, c["on_panel"], mono=True, bold=True) + "</g>"
 
     # layout: bar on top, screen below, caption under it
-    S = (W - 14 - 6) / VW                  # scale the 800-wide scene into the panel
+    S = (W - 14 - 6) / VW                  # scale the scene to fill the panel
     bar_h, sx, sy = 34, 3, 34
     screen_h = VH * S
     h = sy + screen_h + 3
@@ -637,7 +640,7 @@ def wip(theme: str, cfg: dict) -> str:
 HEADINGS = {"stats": "STATS", "activity": "RECENT ACTIVITY", "stack": "STACK", "gallery": "THE GALLERY"}
 
 
-def heading(theme: str, title: str) -> str:
+def heading(theme: str, cfg: dict, title: str) -> str:
     c = PALETTES[theme]
     body = (f'<polygon points="8,6 22,6 16,38 2,38" fill="{c["accent"]}"/>'
             + text(title, 34, 35, 34, c["ink"], wght=700, wdth=70))
@@ -653,8 +656,7 @@ def footer(theme: str, cfg: dict) -> str:
 
 
 BUILDERS = {"wip": wip, "banner": banner, "typing": typing, "about": about, "commit": commit, "dodge": dodge, "footer": footer}
-for _key, _title in HEADINGS.items():
-    BUILDERS[f"h-{_key}"] = (lambda t: (lambda theme, cfg: heading(theme, t)))(_title)
+BUILDERS.update({f"h-{key}": functools.partial(heading, title=title) for key, title in HEADINGS.items()})
 
 if __name__ == "__main__":
     cfg = config()

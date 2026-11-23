@@ -17,13 +17,13 @@ import os
 import random
 import sys
 import urllib.request
-from html import escape
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from art import WEAPON_NAMES, WEAPONS, el_runner, runner_css
-from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, panel, text, text_width, write
+from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, panel, text, text_width, write
+from stack import logo, logos
 
 W = 830
 NOW = dt.datetime.now(dt.timezone.utc)
@@ -194,10 +194,6 @@ RANKS = ((0, "E", "Just spawned"), (50, "D", "Warming up"), (250, "C", "Climbing
          (1_000_000, "EX", "Beyond the scale"))
 
 
-def aura(d) -> str:
-    return rank(d)[0]
-
-
 def rank(d) -> tuple[str, str, float, int, str]:
     """(grade, title, progress through this grade 0..1, commits to the next grade, next grade)."""
     n = d.get("lifetime", 0)
@@ -242,7 +238,7 @@ def wrap(s: str, size: float, max_w: float, lines: int, **kw) -> list[str]:
     return [x for x in out if x]
 
 
-def sh(c, x, y, w, h, color):
+def sh(x, y, w, h, color):
     """Solid comic offset shadow."""
     return f'<rect x="{x + 6}" y="{y + 6}" width="{w}" height="{h}" fill="{color}"/>'
 
@@ -265,7 +261,7 @@ def stats_card(theme, d):
     c = PALETTES[theme]
     pw, ph = 400, 232  # two panels + the gap + a 6px shadow must fit inside W
     # left: aura rank, how close the next one is, and the numbers behind it
-    body = sh(c, 0, 0, pw, ph, c["accent"]) + panel_plain(c, 0, 0, pw, ph, "~/el/power-level")
+    body = sh(0, 0, pw, ph, c["accent"]) + panel_plain(c, 0, 0, pw, ph, "~/el/power-level")
     g, title, prog, need, nxt = rank(d)
     bx, by = 70, 92
     pts = " ".join(f"{bx + (48 if i % 2 == 0 else 26) * math.cos(i * math.pi / 8 - math.pi / 2):.1f},"
@@ -299,17 +295,17 @@ def stats_card(theme, d):
             i += 1
     # right: languages as power bars, with their logos
     x0 = pw + 22
-    body += sh(c, x0, 0, pw, ph, c["ink"]) + panel_plain(c, x0, 0, pw, ph, "~/el/languages")
+    body += sh(x0, 0, pw, ph, c["ink"]) + panel_plain(c, x0, 0, pw, ph, "~/el/languages")
     total = sum(v for v, _ in d["langs"].values()) or 1
     top = sorted(d["langs"].items(), key=lambda kv: -kv[1][0])[:5]
     lead = top[0][1][0] / total if top else 1
-    L = stack_logos()
+    L = logos()
     for i, (n, (v, col)) in enumerate(top):
         y = 58 + i * 34
         share = v / total
         lg = L.get(n)
         if lg:
-            body += logo(c, lg, x0 + 18, y - 13, 16, c["ink"])
+            body += logo(lg, x0 + 18, y - 13, 16, c["ink"])
         else:
             body += f'<circle cx="{x0 + 26}" cy="{y - 5}" r="6" fill="{col}" stroke="{c["ink"]}" stroke-width="1.5"/>'
         body += text(fit(n, 14, 108, wght=700), x0 + 42, y, 14, c["ink"], wght=700)
@@ -324,21 +320,6 @@ def stats_card(theme, d):
     return doc(W, ph + 8, body, label, css)
 
 
-def stack_logos() -> dict:
-    """Logos by name, from the portfolio's stack.json that scripts/stack.py saved."""
-    f = ROOT / "generated" / "stack.json"
-    return json.loads(f.read_text(encoding="utf-8")).get("logos", {}) if f.exists() else {}
-
-
-def logo(c, entry, x, y, size, color):
-    """A Simple Icons logo (24×24 path) or a lettered tile, top-left at x, y."""
-    if "path" in entry:
-        return f'<path transform="translate({x:.1f} {y:.1f}) scale({size / 24:.4f})" d="{entry["path"]}" fill="{color}"/>'
-    t, fs = entry["tile"], size * 0.45
-    return (f'<rect x="{x + 0.75:.1f}" y="{y + 0.75:.1f}" width="{size - 1.5:.1f}" height="{size - 1.5:.1f}" fill="none" stroke="{color}" stroke-width="1.5"/>'
-            + text(t, x + size / 2, y + size / 2 + fs * 0.36, fs, color, mono=True, bold=True, anchor="middle"))
-
-
 def panel_plain(c, x, y, w, h, title):
     return (f'<rect x="{x + 1.5}" y="{y + 1.5}" width="{w - 3}" height="{h - 3}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="3"/>'
             f'<rect x="{x}" y="{y}" width="{w}" height="26" fill="{c["ink"]}"/>'
@@ -351,7 +332,7 @@ def streak_card(theme, d):
     h = 124
     w3 = (W - 8 - 6) / 3.2
     mid = W - 8 - 6 - 2 * w3
-    body = sh(c, 0, 0, W - 8, h, c["accent"]) + f'<rect x="0" y="0" width="{W - 8}" height="{h}" fill="{c["ink"]}"/>'
+    body = sh(0, 0, W - 8, h, c["accent"]) + f'<rect x="0" y="0" width="{W - 8}" height="{h}" fill="{c["ink"]}"/>'
     cells = [(3, w3 - 3, f"{d['total']:,}", "TOTAL CONTRIBUTIONS", "in the past year", False),
              (3 + w3, mid - 3, str(cur), "CURRENT STREAK", "days · inconsistency, reformed" if cur >= 7 else "days · the comeback starts now", True),
              (3 + w3 + mid, w3 - 3, str(longest), "LONGEST STREAK", "days in a row", False)]
@@ -425,10 +406,10 @@ def year_card(theme, d, weapon="sword", cfg=None):
 
     # the headwind: streaks blowing in from where he's heading
     winds = ""
-    for i, (y, ln, dur, dl, curl) in enumerate(((ground - 62, 34, 1.7, 0.0, False), (ground - 44, 22, 1.3, 0.5, False),
+    for y, ln, dur, dl, curl in ((ground - 62, 34, 1.7, 0.0, False), (ground - 44, 22, 1.3, 0.5, False),
                                                  (ground - 28, 40, 1.9, 1.1, True), (ground - 12, 18, 1.1, 0.3, False),
-                                                 (ground - 52, 26, 1.5, 0.9, True), (ground - 20, 30, 1.6, 1.4, False))):
-        tail = f" c-9 0 -9 -11 -1 -11" if curl else ""
+                                                 (ground - 52, 26, 1.5, 0.9, True), (ground - 20, 30, 1.6, 1.4, False)):
+        tail = " c-9 0 -9 -11 -1 -11" if curl else ""
         winds += (f'<path class="w" style="animation-duration:{dur}s;animation-delay:-{dl}s" '
                   f'd="M{W - 10} {y} h-{ln}{tail}" fill="none" stroke="{c["ink"]}" stroke-width="2" stroke-linecap="round"/>')
 
@@ -469,7 +450,7 @@ def repo_card(theme, repo, i, user):
     c = PALETTES[theme]
     w, h = 404, 176
     shadow = c["accent"] if i == 0 else c["ink"]
-    body = sh(c, 0, 0, w, h, shadow)
+    body = sh(0, 0, w, h, shadow)
     body += f'<rect x="1.25" y="1.25" width="{w - 2.5}" height="{h - 2.5}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
     name = repo["name"]
     desc = repo.get("description") or ""
@@ -514,8 +495,8 @@ def repo_card(theme, repo, i, user):
         lx = w - 18 - text_width(when, 12, 500) - 12
         body += (f'<circle class="ping" cx="{lx:.1f}" cy="{y - 4}" r="4.5" fill="none" stroke="{c["accent"]}" stroke-width="2"/>'
                  f'<circle cx="{lx:.1f}" cy="{y - 4}" r="4.5" fill="{c["accent"]}"/>')
-        css = (f".ping{{transform-box:fill-box;transform-origin:center;animation:ping 1.6s ease-out infinite}}"
-               f"@keyframes ping{{from{{transform:scale(1);opacity:.9}}to{{transform:scale(2.6);opacity:0}}}}")
+        css = (".ping{transform-box:fill-box;transform-origin:center;animation:ping 1.6s ease-out infinite}"
+               "@keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.6);opacity:0}}")
         when = "live, " + when
     label = f"{name} ({tag}): {desc or 'no description yet'}. {lang}. {crew}. {when}. Latest commit: {msg}"
     return doc(w + 8, h + 8, body, label, css)
@@ -610,4 +591,4 @@ if __name__ == "__main__":
     # art.py fills the live About tiles from this
     (ROOT / "generated" / "live.json").write_text(json.dumps(live_tiles(d), indent=2) + "\n", encoding="utf-8")
     cur, longest = streaks(d["days"])
-    print(f"drew cards: {d['total']} contributions, streak {cur} (best {longest}), aura {aura(d)}, {len(d['cards'])} repo cards: " + ", ".join(r["name"] for r in d["cards"]))
+    print(f"drew cards: {d['total']} contributions, streak {cur} (best {longest}), rank {rank(d)[0]}, {len(d['cards'])} repo cards: " + ", ".join(r["name"] for r in d["cards"]))

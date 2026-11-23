@@ -12,11 +12,10 @@ from __future__ import annotations
 import json
 import sys
 import urllib.request
-from html import escape
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.svgkit import PALETTES, ROOT, THEMES, Glyphs, config, doc, panel, text as outline, text_width, write
+from lib.svgkit import PALETTES, ROOT, THEMES, Glyphs, config, doc, text as outline, write
 
 W = 830
 BOOK: Glyphs | None = None  # set per image: the panel repeats a lot of letters, so each is outlined once
@@ -52,7 +51,7 @@ def text(*args, **kw) -> str:
     return outline(*args, book=BOOK, **kw)
 
 
-def logo(c: dict, entry: dict | None, x: float, y: float, size: float, color: str) -> str:
+def logo(entry: dict | None, x: float, y: float, size: float, color: str) -> str:
     """A Simple Icons logo (24×24 path) or a lettered tile, with its top-left at x, y."""
     if not entry:
         return ""
@@ -130,7 +129,7 @@ def stack_grid(theme: str, data: dict) -> str:
             tx = left + col * (tile + tgap)
             ty = y + 30 + pad + r * (tile + tgap)
             body += (f'<rect x="{tx:.1f}" y="{ty:.1f}" width="{tile}" height="{tile}" rx="7" fill="{c["ink"]}"/>'
-                     + logo(c, L.get(name), tx + 9, ty + 9, tile - 18, c["paper"]))
+                     + logo(L.get(name), tx + 9, ty + 9, tile - 18, c["paper"]))
         label.append(f"{title}: {', '.join(items)}")
         row_h = max(row_h, h)
         x = 0.0 if full else x + w + gap

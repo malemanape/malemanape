@@ -28,7 +28,6 @@ from lib.svgkit import MONO_ADV, MONO_STACK, PALETTES, THEMES, doc, panel, write
 
 COLS, ROWS = 126, 40
 VW, VH = 1896, 1000                     # drawing space; one cell = 15.05 x 25
-CX, CY = VW / COLS, VH / ROWS
 RAMP = " .:-=+*#%@"
 W = 830
 FS, LH = 10, 10                         # font size and line height of the grid
@@ -66,7 +65,7 @@ num = re.compile(r"-?\d+\.?\d*")
 def lerp_path(a: str, b: str, f: float) -> str:
     na, nb = [float(x) for x in num.findall(a)], [float(x) for x in num.findall(b)]
     vals = iter(x + (y - x) * f for x, y in zip(na, nb))
-    return num.sub(lambda m: f"{next(vals):.1f}", a)
+    return num.sub(lambda _: f"{next(vals):.1f}", a)
 
 
 def sky(p: Pen, horizon=640, ground="#d4d4d4"):
@@ -232,7 +231,7 @@ def el(f: int, p: Pen):
           '<linearGradient id="far" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b0b0b0"/><stop offset="1" stop-color="#d8d8d8"/></linearGradient>'
           '<linearGradient id="near" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a6a6a"/><stop offset="1" stop-color="#3a3a3a"/></linearGradient></defs>')
     if not p.mask:
-        p.add(f'<circle cx="560" cy="460" r="300" fill="url(#sun)"/><circle cx="560" cy="460" r="120" fill="#fff"/>')
+        p.add('<circle cx="560" cy="460" r="300" fill="url(#sun)"/><circle cx="560" cy="460" r="120" fill="#fff"/>')
         p.add('<path d="M0 660 L180 500 L300 590 L470 410 L640 590 L760 510 L980 720 L0 720 Z" fill="url(#far)"/>')
         p.add('<path d="M470 410 L520 460 L490 455 L470 475 L445 450 Z" fill="#fff"/>')
         p.add('<path d="M0 840 L140 710 L260 780 L420 660 L600 810 L760 720 L1000 920 L1000 1000 L0 1000 Z" fill="url(#near)"/>')
@@ -520,7 +519,7 @@ def desk_text(f: int):
         if n:
             out.append((38, 9 + i * 2, line[:n], i == 3))
     done = sum(len(x) for x in DESK_CODE) <= f * 7
-    row = 9 + 2 * min(len(DESK_CODE) - 1, sum(1 for o in out) - 1 if out else 0)
+    row = 9 + 2 * min(len(DESK_CODE) - 1, len(out) - 1 if out else 0)
     col = 38 + (len(out[-1][2]) if out else 0)
     if f % 2 == 0 or not done:
         out.append((col, row, "_", True))
@@ -586,7 +585,7 @@ def rows_svg(chars, hot) -> str:
 def build(print_frames=False):
     frames = []      # (svg body, scene index)
     timeline = []    # (frame id, seconds)
-    for si, (file, caption, draw, text_fn, n, slots, step) in enumerate(SCENES):
+    for si, (file, _caption, draw, text_fn, n, slots, step) in enumerate(SCENES):
         base = len(frames)
         for f in range(n):
             chars, hot = grid_for(draw, text_fn, f)

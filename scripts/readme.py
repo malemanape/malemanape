@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from html import escape
@@ -14,10 +15,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.svgkit import ROOT, config
 
 
+def fresh(file: str) -> str:
+    """file plus a fingerprint of its contents, e.g. 'generated/repo-1-dark.svg?v=3fa2c1d0'.
+    GitHub caches README images by URL, so a card redrawn under the same name can keep
+    showing the old picture. A new fingerprint makes it fetch the new one."""
+    f = ROOT / file
+    return f"{file}?v={hashlib.sha1(f.read_bytes()).hexdigest()[:8]}" if f.exists() else file
+
+
 def pic(path: str, alt: str, width: int | str = 830) -> str:
     """Light/dark image pair. path is e.g. 'assets/banner' (without -light.svg)."""
-    return (f'<picture><source media="(prefers-color-scheme: dark)" srcset="{path}-dark.svg">'
-            f'<img src="{path}-light.svg" alt="{escape(alt)}" width="{width}"></picture>')
+    return (f'<picture><source media="(prefers-color-scheme: dark)" srcset="{fresh(path + "-dark.svg")}">'
+            f'<img src="{fresh(path + "-light.svg")}" alt="{escape(alt)}" width="{width}"></picture>')
 
 
 def badge(label: str, message: str, href: str, color: str = "F4EFE4") -> str:

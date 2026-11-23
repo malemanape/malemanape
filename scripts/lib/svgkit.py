@@ -49,14 +49,14 @@ def config() -> dict:
 
 # ---------------------------------------------------------------- outlined text
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _archivo(wght: int, wdth: int):
     font = TTFont(FONTS / "archivo-var.woff")
     inst = instancer.instantiateVariableFont(font, {"wght": wght, "wdth": wdth})
     return inst, inst.getGlyphSet(), inst.getBestCmap(), inst["hmtx"], inst["head"].unitsPerEm
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _mono(bold: bool):
     font = TTFont(FONTS / ("DejaVuSansMono-Bold.ttf" if bold else "DejaVuSansMono.ttf"))
     return font, font.getGlyphSet(), font.getBestCmap(), font["hmtx"], font["head"].unitsPerEm
@@ -127,7 +127,7 @@ def text(s: str, x: float, y: float, size: float, fill: str, *, wght=700, wdth=1
 MONO_CHARS = "".join(chr(c) for c in range(32, 127)) + "¬°·•─│┌┐└┘■□▌▐░▒▓█"
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def mono_css() -> str:
     """@font-face rules with a subset of DejaVu Sans Mono embedded as WOFF."""
     rules = []
@@ -184,18 +184,6 @@ def panel(c: dict, x: float, y: float, w: float, h: float, title: str, right: st
         f'<rect x="{x}" y="{y}" width="{w}" height="28" fill="{c["ink"]}"/>'
         + text(title, x + 14, y + 19, 13, c["paper"], mono=True, bold=True)
         + (text(right, x + w - 14, y + 19, 13, right_color or c["on_ink_accent"], mono=True, bold=True, anchor="end") if right else "")
-    )
-
-
-def frames_css(n: int, step_s: float, cls: str = "f") -> str:
-    """CSS that shows .f0 … .f{n-1} one after another, forever. Frame 0 shows when motion is reduced."""
-    total = n * step_s
-    pct = 100 / n
-    return (
-        f".{cls}{{visibility:hidden;animation:{cls}k {total:.2f}s steps(1,end) infinite}}"
-        f"@keyframes {cls}k{{0%{{visibility:visible}}{pct:.4f}%{{visibility:hidden}}100%{{visibility:hidden}}}}"
-        + "".join(f".{cls}{i}{{animation-delay:{i*step_s:.2f}s}}" for i in range(n))
-        + f"@media (prefers-reduced-motion:reduce){{.{cls}0{{visibility:visible}}}}"
     )
 
 

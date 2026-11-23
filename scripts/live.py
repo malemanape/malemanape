@@ -392,9 +392,23 @@ def repo_card(theme, repo, meta, i, user):
     body += text(tag, tx + tw / 2, 31.5, 11.5, c["muted"], wght=500, anchor="middle")
     for j, line in enumerate(wrap(desc, 13, w - 36, 2, wght=400)):
         body += text(line, 18, 60 + j * 19, 13, c["ink"], wght=400)
+    css = ""
     if not msg and meta.get("upcoming"):
-        body += f'<rect x="18" y="98" width="{w - 36}" height="26" fill="none" stroke="{c["ink"]}" stroke-width="2" stroke-dasharray="6 5"/>'
-        body += text("$ git init  # soon", 28, 115.5, 11.5, c["muted"], mono=True)
+        # fenced off with caution tape, like the banner at the top of the profile
+        band, period = 24, 28
+        stripes = "".join(
+            f'<polygon points="{x},0 {x + period / 2},0 {x + period / 2 - band},{band} {x - band},{band}" fill="{c["accent"]}"/>'
+            for x in range(-2 * period, w + 3 * period, period))
+        sign = "UNDER CONSTRUCTION"
+        sw = text_width(sign, 11.5, mono=True, bold=True) + 24
+        body += (f'<clipPath id="soon{theme}"><rect x="2.5" y="2.5" width="{w - 5}" height="{h - 5}"/></clipPath>'
+                 f'<g clip-path="url(#soon{theme})"><g transform="rotate(-4 {w / 2} 111)">'
+                 f'<rect x="-30" y="99" width="{w + 60}" height="{band}" fill="{c["ink"]}"/>'
+                 f'<svg x="-30" y="99" width="{w + 60}" height="{band}" overflow="hidden"><g class="tape">{stripes}</g></svg>'
+                 f'<rect x="{(w - sw) / 2:.1f}" y="97" width="{sw:.1f}" height="{band + 4}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
+                 + text(sign, w / 2, 115.5, 11.5, c["ink"], mono=True, bold=True, anchor="middle")
+                 + "</g></g>")
+        css = f".tape{{animation:slide 2.4s linear infinite}}@keyframes slide{{to{{transform:translateX({period}px)}}}}"
     if msg:
         body += f'<rect x="18" y="98" width="{w - 36}" height="26" fill="{c["ink"]}"/>'
         body += text("$", 28, 115.5, 11.5, c["on_ink_accent"], mono=True, bold=True)
@@ -408,7 +422,6 @@ def repo_card(theme, repo, meta, i, user):
     rx = 36 + (text_width(lang, 12, 500) + 18 if lang else -18)
     body += text(meta.get("role", ""), rx, y, 12, c["muted"], wght=500)
     body += text(when, w - 18, y, 12, c["muted"], wght=500, anchor="end")
-    css = ""
     if repo and repo.get("pushedAt") and NOW - dt.datetime.fromisoformat(repo["pushedAt"].replace("Z", "+00:00")) < dt.timedelta(hours=24):
         # pushed in the last day: a pulsing LIVE dot before the time
         lx = w - 18 - text_width(when, 12, 500) - 12

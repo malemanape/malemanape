@@ -28,11 +28,11 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-activity-dark.svg?v=4f0ceaf0"><img src="assets/h-activity-light.svg?v=751602b1" alt="Recent activity" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=c57700c5"><img src="generated/ticker-light.svg?v=38bd6081" alt="Latest pushes" width="830"></picture></p>
 <p align="center">
-  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=23d2adc8"><img src="generated/repo-1-light.svg?v=ebf3a498" alt="my-portfolio" width="412"></picture></a>
-  <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=4b74e38b"><img src="generated/repo-2-light.svg?v=249658d9" alt="Ka-dugo" width="412"></picture></a>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=dd5fe08b"><img src="generated/repo-1-light.svg?v=f3a1ed49" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=f18b5c39"><img src="generated/repo-2-light.svg?v=1a9533e4" alt="Ka-dugo" width="412"></picture></a>
 </p>
 <p align="center">
-  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=5068dd29"><img src="generated/repo-3-light.svg?v=9e575697" alt="ThriftBite" width="412"></picture></a>
+  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=05f4f645"><img src="generated/repo-3-light.svg?v=42c5d267" alt="ThriftBite" width="412"></picture></a>
   <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg?v=c9779553"><img src="generated/repo-4-light.svg?v=61ff5182" alt="webapp-secondserve" width="412"></picture></a>
 </p>
 

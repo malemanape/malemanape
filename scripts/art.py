@@ -207,6 +207,18 @@ WEAPON_NAMES = {"sword": "greatsword", "zweihander": "zweihander", "axe": "great
 CARRY = {"greatbow": "translate(4 -80) rotate(-152) scale(0.85)"}
 
 
+# the running cape: three shapes with the same commands, so it ripples smoothly from one to the next
+RUN_CAPE = [
+    "M9 -90 C4 -95 -6 -94 -11 -88 C-34 -88 -62 -84 -92 -72 C-84 -66 -80 -62 -76 -54 C-64 -58 -56 -54 -50 -46 "
+    "C-38 -50 -28 -46 -16 -40 C-14 -58 -10 -76 2 -86 Z",
+    "M9 -90 C4 -95 -6 -94 -11 -88 C-36 -92 -66 -92 -98 -86 C-90 -78 -86 -72 -82 -64 C-70 -66 -62 -60 -54 -52 "
+    "C-42 -54 -30 -48 -16 -40 C-14 -58 -10 -76 2 -86 Z",
+    "M9 -90 C4 -95 -6 -94 -11 -88 C-32 -84 -58 -76 -86 -60 C-78 -56 -74 -50 -72 -42 C-60 -48 -52 -44 -46 -38 "
+    "C-36 -42 -26 -40 -16 -40 C-14 -58 -10 -76 2 -86 Z",
+]
+RUN_FOLD = ["M-14 -84 C-30 -80 -46 -72 -58 -58", "M-14 -84 C-32 -84 -50 -78 -64 -66", "M-14 -84 C-28 -78 -42 -66 -52 -52"]
+
+
 def el_runner(c, uid, weapon="sword"):
     """El in profile, facing right, feet at (0,0), about 104 units tall. Legs swing from the hip,
     the body bobs twice per stride, the cape ripples, and the weapon (see WEAPONS) rides on his right shoulder."""
@@ -222,12 +234,11 @@ def el_runner(c, uid, weapon="sword"):
     return (
         f'<g class="{uid}bob">'
         f'<g transform="translate(0 -44)"><g class="{uid}legB"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
-        # the same cape as everywhere else (CAPE_A/B and its fold, as on the portfolio), mirrored to stream behind him
-        f'<g transform="translate(-2 -88) scale(-0.38 0.38) translate(-170 -140)">'
-        f'<path d="{CAPE_A}" fill="{acc}" stroke="{ink}" stroke-width="10" stroke-linejoin="round">'
-        f'<animate attributeName="d" dur="0.6s" repeatCount="indefinite" values="{CAPE_A};{CAPE_B};{CAPE_A}"/></path>'
-        f'<path d="{FOLD_A}" fill="none" stroke="{ink}" stroke-width="7" stroke-linecap="round" opacity="0.55">'
-        f'<animate attributeName="d" dur="0.6s" repeatCount="indefinite" values="{FOLD_A};{FOLD_B};{FOLD_A}"/></path></g>'
+        # his cape, side-on: clasped at the collar, wrapped over the shoulder, then streaming long behind him
+        f'<path d="{RUN_CAPE[0]}" fill="{acc}" stroke="{ink}" stroke-width="3" stroke-linejoin="round">'
+        f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_CAPE + RUN_CAPE[:1])}"/></path>'
+        f'<path d="{RUN_FOLD[0]}" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.55">'
+        f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_FOLD + RUN_FOLD[:1])}"/></path>'
         f'{sword}'
         f'<path d="{torso}" fill="{ink}"/>'
         f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'

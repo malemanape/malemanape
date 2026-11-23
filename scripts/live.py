@@ -11,7 +11,6 @@ Only needs fontTools (pip install fonttools).
 from __future__ import annotations
 
 import datetime as dt
-import hashlib
 import json
 import math
 import os
@@ -23,7 +22,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art import WEAPONS, el_runner, runner_css
+from art import WEAPON_NAMES, WEAPONS, el_runner, runner_css
 from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, panel, text, text_width, write
 
 W = 830
@@ -369,16 +368,11 @@ def streak_card(theme, d):
 
 
 def weapon_of_the_day(cfg: dict) -> str:
-    """Same weapon all day (in your time zone), a new one tomorrow; the keyboard turns up on about 1 day in 10."""
-    tz = ZoneInfo(cfg.get("timezone", "Asia/Manila"))
-    h = int(hashlib.sha1(dt.datetime.now(tz).date().isoformat().encode()).hexdigest(), 16)
-    if h % 10 == 0:
-        return "keyboard"
-    common = [w for w in WEAPONS if w != "keyboard"]
-    return common[(h // 10) % len(common)]
+    """One weapon per weekday, in your time zone: greatsword on Monday through the keyboard on Sunday."""
+    return list(WEAPONS)[dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).weekday()]
 
 
-def year_card(theme, d, weapon="sword"):
+def year_card(theme, d, weapon="sword", cfg=None):
     c = PALETTES[theme]
     days = d["days"]
     first = dt.date.fromisoformat(days[0][0])
@@ -443,9 +437,10 @@ def year_card(theme, d, weapon="sword"):
            f"@keyframes pEnd{{0%,86%{{opacity:0;transform:scale(0.3)}}87%{{opacity:1;transform:scale(0.6)}}91%,100%{{opacity:0;transform:scale(1.6)}}}}"
            f"@keyframes pStart{{0%,91%{{opacity:0;transform:scale(0.3)}}92%{{opacity:1;transform:scale(0.6)}}96%,100%{{opacity:0;transform:scale(1.6)}}}}"
            f"@media (prefers-reduced-motion:reduce){{.elmove{{transform:translateX({track}px)}}.fog{{opacity:0}}}}")
-    body += text(f"today's weapon: {weapon}", W - 14 - 18, h - 12, 10.5, c["muted"], mono=True, anchor="end")
+    day = dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).strftime("%A").lower() if cfg else "today"
+    body += text(f"{day}'s weapon: {WEAPON_NAMES.get(weapon, weapon)}", W - 14 - 18, h - 12, 10.5, c["muted"], mono=True, anchor="end")
     label = (f"Contribution graph for the past year, {d['total']} contributions. "
-             f"El runs across it with a {weapon} on his shoulder, clearing the fog.")
+             f"El runs across it with his {WEAPON_NAMES.get(weapon, weapon)} on his shoulder, clearing the fog.")
     return doc(W, h + 14, body, label, css)
 
 
@@ -586,7 +581,7 @@ if __name__ == "__main__":
     for theme in THEMES:
         write("stats", theme, stats_card(theme, d), "generated")
         write("streak", theme, streak_card(theme, d), "generated")
-        write("year", theme, year_card(theme, d, weapon), "generated")
+        write("year", theme, year_card(theme, d, weapon, cfg), "generated")
         write("ticker", theme, ticker(theme, d), "generated")
         for i, repo in enumerate(d["cards"]):
             write(f"repo-{i + 1}", theme, repo_card(theme, repo, i, cfg["user"]), "generated")

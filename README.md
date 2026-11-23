@@ -8,7 +8,7 @@
   <a href="https://www.linkedin.com/in/el-steven/"><img src="https://img.shields.io/badge/linkedin-connect-F4EFE4?style=for-the-badge&labelColor=15130F" alt="Linkedin: connect"></a>
   <a href="https://www.fiverr.com/ryuniii/"><img src="https://img.shields.io/badge/fiverr-lore%20for%20hire-F4EFE4?style=for-the-badge&labelColor=15130F" alt="Fiverr: lore for hire"></a>
   <a href="mailto:dcruzsteven1@gmail.com"><img src="https://img.shields.io/badge/email-say%20hi-F4EFE4?style=for-the-badge&labelColor=15130F" alt="Email: say hi"></a>
-  <img src="https://komarev.com/ghpvc/?username=Gittyers082&label=VISITORS&color=00789A&style=for-the-badge" alt="Profile visitors">
+  <img src="https://komarev.com/ghpvc/?username=malemanape&label=VISITORS&color=00789A&style=for-the-badge" alt="Profile visitors">
 </p>
 
 Hi, I'm **El**. I build web apps front to back, write lore and power systems on the side, and I'm learning AI engineering properly.
@@ -27,12 +27,12 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-building-dark.svg"><img src="assets/h-building-light.svg" alt="Currently building" width="830"></picture></h3>
 <p align="center">
-  <a href="https://github.com/Gittyers082/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg"><img src="generated/repo-1-light.svg" alt="webapp-secondserve" width="412"></picture></a>
+  <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg"><img src="generated/repo-1-light.svg" alt="webapp-secondserve" width="412"></picture></a>
   <picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg"><img src="generated/repo-2-light.svg" alt="my-first-rag (coming soon)" width="412"></picture>
 </p>
 <p align="center">
-  <a href="https://github.com/Gittyers082/thriftbite-sockets"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg"><img src="generated/repo-3-light.svg" alt="thriftbite-sockets" width="412"></picture></a>
-  <a href="https://github.com/Gittyers082/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg"><img src="generated/repo-4-light.svg" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg"><img src="generated/repo-3-light.svg" alt="ThriftBite" width="412"></picture></a>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg"><img src="generated/repo-4-light.svg" alt="my-portfolio" width="412"></picture></a>
 </p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg"><img src="assets/h-stack-light.svg" alt="Stack" width="830"></picture></h3>

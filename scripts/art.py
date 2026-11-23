@@ -61,9 +61,11 @@ def el_on_rock(c: dict, uid: str) -> str:
 
 # ---------------------------------------------------------------- El running, side-on
 
-def _grip(ink, acc):
-    return (f'<path d="M-24 -2.6 L-2 -2.6 L-2 2.6 L-24 2.6 Z" fill="{ink}"/>'
-            f'<circle cx="-27" cy="0" r="4.2" fill="{acc}" stroke="{ink}" stroke-width="2"/>')
+def _pommel(ink, paper):
+    """The greatsword's octagonal ring pommel on a short cream rod, ending at x = -14 where the grip starts."""
+    return (f'<path d="M-14 -2.2 L-26 -2.2 L-26 2.2 L-14 2.2 Z" fill="{paper}" stroke="{ink}" stroke-width="1.6"/>'
+            f'<path d="M-30.6 -5.4 L-26.4 -5.4 L-23.4 -2.4 L-23.4 2.4 L-26.4 5.4 L-30.6 5.4 L-33.6 2.4 L-33.6 -2.4 Z" '
+            f'fill="{paper}" stroke="{ink}" stroke-width="2"/><circle cx="-28.5" cy="0" r="1.6" fill="{ink}"/>')
 
 
 def _haft(ink, x0, x1, r=2.6):
@@ -72,23 +74,89 @@ def _haft(ink, x0, x1, r=2.6):
 
 # El's weapons, each drawn along +x from where his hand holds it (x = 0); the year card picks one a day
 WEAPONS = {
+    # the greatsword from El's avatar: a broad blade that flares toward a faceted point, cream edges around a
+    # black core with a cyan fuller, a slim upright guard, and an octagonal ring pommel
     "sword": lambda ink, acc, paper: (
-        _grip(ink, acc)
-        + f'<path d="M-3 -14 L3 -14 L3 14 L-3 14 Z" fill="{ink}"/>'
-        f'<path d="M3 -9 L90 -9 L104 0 L90 9 L3 9 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
-        f'<path d="M10 0 L84 0" stroke="{acc}" stroke-width="3" stroke-linecap="round"/>'),
+        _pommel(ink, paper) + f'<path d="M-14 -4 L-2 -4 L-2 4 L-14 4 Z" fill="{ink}"/>'
+        f'<path d="M-3 -17 L6 -17 L6 17 L-3 17 Z" fill="{paper}" stroke="{ink}" stroke-width="2.4"/>'
+        f'<path d="M0.4 -13 L2.6 -13 L2.6 13 L0.4 13 Z" fill="{ink}"/>'
+        f'<path d="M6 -8 L92 -14.5 L117 -2 L104 14 L6 8 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        f'<path d="M12 -4 L90 -9.5 L108 -2 L99 9 L12 4 Z" fill="{ink}"/>'
+        f'<path d="M26 -0.4 L88 -5.4 L101 -1.6 L88 2.6 Z" fill="{acc}"/>'),
+    # the axe, hammer, halberd and keyboard share the greatsword's look: cream edges with an ink outline,
+    # a black core, a cyan accent, and the octagonal ring pommel on the end of the haft
+    # the axe and halberd keep the silhouettes El splits the rock with on the portfolio (AuraFarmer.astro),
+    # drawn upright there; here they're turned to lie along +x and given the greatsword's finish
     "axe": lambda ink, acc, paper: (
-        # the same axe El splits the rock with on the portfolio (AuraFarmer.astro), turned to lie along +x
-        f'<g transform="rotate(90) scale(0.55)"><rect x="-6" y="-178" width="12" height="208" rx="3" fill="{ink}"/><path d="M-6 -164 L-18 -162 L-18 -146 L-6 -144 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M6 -166 L26 -166 L60 -200 L65 -150 L54 -94 L28 -136 L6 -142 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M53 -186 L57 -150 L49 -110" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.5"/></g>'),
+        _pommel(ink, paper)
+        + f'<g transform="rotate(90) scale(0.55)">'
+        f'<rect x="-6" y="-178" width="12" height="204" rx="3" fill="{ink}"/>'
+        f'<path d="M-6 -164 L-18 -162 L-18 -146 L-6 -144 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/>'
+        f'<path d="M6 -166 L26 -166 L60 -200 L65 -150 L54 -94 L28 -136 L6 -142 Z" fill="{paper}" stroke="{ink}" stroke-width="5" stroke-linejoin="round"/>'
+        f'<path d="M13 -159 L29 -159 L53 -184 L57 -150 L50 -114 L31 -142 L13 -149 Z" fill="{ink}"/>'
+        f'<path d="M52 -180 L58.5 -150 L50 -112 L54 -150 Z" fill="{acc}"/>'
+        f'<path d="M-7 -132 H7 M-7 -122 H7" stroke="{paper}" stroke-width="3"/>'
+        f'</g>'),
     "hammer": lambda ink, acc, paper: (
-        # the same hammer El splits the rock with on the portfolio (AuraFarmer.astro), turned to lie along +x
-        f'<g transform="rotate(90) scale(0.55)"><rect x="-6" y="-130" width="12" height="160" fill="{ink}"/><rect x="-40" y="-176" width="80" height="50" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M-24 -176 V-126 M24 -176 V-126" stroke="{ink}" stroke-width="4"/></g>'),
+        # a war hammer after El's reference: a tall block face on one side (up, when he carries it), a
+        # banded round back end on the other, an octagonal socket marked E between them, a wrapped
+        # haft and a spiked pommel
+        f'<path d="M-14 -4.4 L-21 -7 L-27 0 L-21 7 L-14 4.4 Z" fill="{paper}" stroke="{ink}" stroke-width="2" stroke-linejoin="round"/>'
+        f'<path d="M-27 -3 L-36 0 L-27 3 Z" fill="{paper}" stroke="{ink}" stroke-width="2" stroke-linejoin="round"/>'
+        + _haft(ink, -14, 56, 3.4)
+        + "".join(f'<path d="M{x} -3.4 L{x + 5} 3.4" stroke="{paper}" stroke-width="1.6"/>' for x in range(-10, 40, 8))
+        + f'<path d="M42 -3.6 L50 -3.6 L50 3.6 L42 3.6 Z" fill="{acc}" stroke="{ink}" stroke-width="1.4"/>'
+        # the neck collar
+        f'<path d="M50 -5 L56 -7.5 L60 -5.5 L60 5.5 L56 7.5 L50 5 Z" fill="{paper}" stroke="{ink}" stroke-width="2" stroke-linejoin="round"/>'
+        # the banded round back end
+        f'<path d="M64 -11 L80 -11 L80 -27 C80 -32 64 -32 64 -27 Z" fill="{paper}" stroke="{ink}" stroke-width="2.6" stroke-linejoin="round"/>'
+        f'<path d="M64 -17 L80 -17 M64 -22.5 L80 -22.5" stroke="{ink}" stroke-width="2.4"/>'
+        # the tall striking block
+        f'<path d="M52 12 L94 12 L96 44 L50 44 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        f'<path d="M56 16 L90 16 L91 39 L55 39 Z" fill="{ink}"/>'
+        f'<path d="M57 26 L89 26 L89 29 L57 29 Z" fill="{acc}"/>'
+        f'<path d="M58 12.6 L58 43.4 M88 12.6 L88 43.4" stroke="{paper}" stroke-width="1.6"/>'
+        # the octagonal socket, marked E
+        f'<path d="M65 -13 L79 -13 L85 -7 L85 7 L79 13 L65 13 L59 7 L59 -7 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        f'<path d="M65.5 -7.5 L78.5 -7.5 L78.5 7.5 L65.5 7.5 Z" fill="{ink}"/>'
+        f'<g transform="translate(72 0) rotate(90)"><path d="M-4 -5 L4 -5 L4 -2.6 L-1.4 -2.6 L-1.4 -1.1 L3 -1.1 L3 1.1 L-1.4 1.1 '
+        f'L-1.4 2.6 L4 2.6 L4 5 L-4 5 Z" fill="{acc}"/></g>'),
     "halberd": lambda ink, acc, paper: (
-        # the same halberd El splits the rock with on the portfolio (AuraFarmer.astro); it's long, so a bit smaller
-        f'<g transform="rotate(90) scale(0.42)"><rect x="-5" y="-216" width="10" height="252" rx="2" fill="{ink}"/><path d="M0 -296 L9 -240 L4 -214 L-4 -214 L-9 -240 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M5 -208 L22 -210 L54 -230 L58 -186 L50 -148 L22 -170 L5 -170 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M48 -218 L52 -186 L45 -158" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.5"/><path d="M-5 -206 L-46 -184 L-5 -186 Z" fill="{paper}" stroke="{ink}" stroke-width="4" stroke-linejoin="round"/><path d="M-7 -170 H7 M-7 -160 H7" stroke="{paper}" stroke-width="2"/></g>'),
+        _pommel(ink, paper)
+        + f'<g transform="rotate(90) scale(0.42)">'
+        f'<rect x="-5" y="-216" width="10" height="250" rx="2" fill="{ink}"/>'
+        # the spear point: a slim greatsword tip, cream edges, black core, cyan fuller
+        f'<path d="M0 -296 L9 -240 L4 -214 L-4 -214 L-9 -240 Z" fill="{paper}" stroke="{ink}" stroke-width="5" stroke-linejoin="round"/>'
+        f'<path d="M0 -282 L5 -242 L2 -222 L-2 -222 L-5 -242 Z" fill="{ink}"/>'
+        f'<path d="M0 -270 L2 -244 L0 -228 L-2 -244 Z" fill="{acc}"/>'
+        # the axe blade, the back hook and the bands
+        f'<path d="M5 -208 L22 -210 L54 -230 L58 -186 L50 -148 L22 -170 L5 -170 Z" fill="{paper}" stroke="{ink}" stroke-width="5" stroke-linejoin="round"/>'
+        f'<path d="M11 -203 L24 -204 L49 -220 L52 -187 L46 -159 L25 -175 L11 -176 Z" fill="{ink}"/>'
+        f'<path d="M48 -215 L53.5 -187 L46 -158 L50 -187 Z" fill="{acc}"/>'
+        f'<path d="M-5 -206 L-46 -184 L-5 -186 Z" fill="{paper}" stroke="{ink}" stroke-width="5" stroke-linejoin="round"/>'
+        f'<path d="M-7 -170 H7 M-7 -160 H7" stroke="{paper}" stroke-width="3"/>'
+        f'</g>'),
+    # the zweihander: a long two-hander with a blunt ricasso, parrying hooks and wide curled quillons
+    "zweihander": lambda ink, acc, paper: (
+        _pommel(ink, paper)
+        + f'<path d="M-14 -3.6 L-3 -3.6 L-3 3.6 L-14 3.6 Z" fill="{ink}"/>'
+        f'<path d="M-11 -3.6 L-11 3.6 M-7 -3.6 L-7 3.6" stroke="{paper}" stroke-width="1.2"/>'
+        # the cross-guard: a bar with its arms curling toward the blade
+        f'<path d="M-3 -3 L-3 -19 C-3 -25 3 -28 8 -25 L6 -21.5 C3.5 -23 1.5 -22 1.5 -19 L1.5 19 C1.5 22 3.5 23 6 21.5 L8 25 '
+        f'C3 28 -3 25 -3 19 L-3 3 Z" fill="{paper}" stroke="{ink}" stroke-width="2.4" stroke-linejoin="round"/>'
+        # the ricasso and its parrying hooks
+        f'<path d="M1.5 -4.6 L26 -4.6 L26 4.6 L1.5 4.6 Z" fill="{paper}" stroke="{ink}" stroke-width="2.4"/>'
+        f'<path d="M4 -1.6 L24 -1.6 L24 1.6 L4 1.6 Z" fill="{ink}"/>'
+        f'<path d="M26 -4.6 L21 -13 L30 -8 Z M26 4.6 L21 13 L30 8 Z" fill="{paper}" stroke="{ink}" stroke-width="2.2" stroke-linejoin="round"/>'
+        # the long blade, faceted at the point like the greatsword's
+        f'<path d="M26 -8.5 L136 -8.5 L156 0 L136 8.5 L26 8.5 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        f'<path d="M31 -4.6 L134 -4.6 L147 0 L134 4.6 L31 4.6 Z" fill="{ink}"/>'
+        f'<path d="M36 -1.2 L128 -1.6 L138 0 L128 1.6 L36 1.2 Z" fill="{acc}"/>'),
     "keyboard": lambda ink, acc, paper: (
-        f'<path d="M-6 -13 L92 -13 L92 13 L-6 13 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
-        + "".join(f'<rect x="{1 + k * 8.6:.1f}" y="{-8 + r * 6}" width="6" height="4" fill="{acc if (r, k) == (1, 9) else ink}"/>'
+        _pommel(ink, paper) + f'<path d="M-14 -2 L-4 -2 L-4 2 L-14 2 Z" fill="{ink}"/>'
+        + f'<path d="M-4 -15 L90 -15 L94 -11 L94 11 L90 15 L-4 15 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+        f'<path d="M1 -11 L89 -11 L89 11 L1 11 Z" fill="{ink}"/>'
+        + "".join(f'<rect x="{4 + k * 8.4:.1f}" y="{-8 + r * 6}" width="6" height="4" rx="0.8" fill="{acc if (r, k) == (1, 9) else paper}"/>'
                   for r in range(3) for k in range(10))),
 }
 

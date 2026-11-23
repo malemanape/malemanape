@@ -7,7 +7,8 @@ Animation lives inside the images. Each image has a `-light` and a `-dark` versi
 |---|---|---|---|
 | Banner, typing line, about tiles, headings, commit joke, dodge.exe, footer | `assets/` | `scripts/art.py` | When you change `profile.config.json` |
 | ASCII gallery (knight, koi, El, campfire) | `assets/gallery-*.svg` | `scripts/gallery.py` | When you change the art |
-| Stats, streak, contribution year, latest-pushes ticker, "recent activity" cards | `generated/` | `scripts/live.py` | The Action, every hour |
+| Stack panel (languages, tools, logos) | `generated/stack-*.svg` | `scripts/stack.py`, from the portfolio's `/stack.json` | The Action, every hour |
+| Power level, languages, streak, contribution year, latest-pushes ticker, "recent activity" cards | `generated/` | `scripts/live.py` | The Action, every hour |
 | `README.md` | repo root | `scripts/readme.py` | The Action, every run |
 
 **Edit `profile.config.json`, not `README.md`.** The Action rewrites the README from the config.

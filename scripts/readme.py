@@ -39,11 +39,6 @@ def real(url: str) -> bool:
     return bool(url) and "[" not in url
 
 
-def srcset(url: str) -> str:
-    # srcset treats commas as separators, so a comma in the URL cuts it short
-    return url.replace(",", "%2C")
-
-
 def activity() -> list[str]:
     """Which repo each "recent activity" card shows, as live.py picked them on its last run."""
     made = ROOT / "generated" / "activity.json"
@@ -84,8 +79,12 @@ def main():
     out.append("")
     out.append(f'<p align="center">{pic("assets/about", "About El")}</p>')
     out.append("")
+    if (ROOT / "generated" / "stack-light.svg").exists():
+        out.append(f'<h3>{pic("assets/h-stack", "Stack")}</h3>')
+        out.append(f'<p align="center"><a href="{escape(site)}">{pic("generated/stack", "Stack: languages with confidence bars, then frontend, backend, data, tools, design and what is next")}</a></p>')
+        out.append("")
     out.append(f'<h3>{pic("assets/h-stats", "Stats")}</h3>')
-    out.append(f'<p align="center">{pic("generated/stats", "Stats and top languages")}</p>')
+    out.append(f'<p align="center">{pic("generated/stats", "Power level: aura rank, stats and top languages")}</p>')
     out.append(f'<p align="center">{pic("generated/streak", "Contribution streak")}</p>')
     out.append(f'<p align="center">{pic("generated/year", "Contributions over the past year")}</p>')
     out.append("")
@@ -101,15 +100,6 @@ def main():
         out.extend("  " + c for c in cards[i:i + 2])
         out.append("</p>")
     out.append("")
-    out.append(f'<h3>{pic("assets/h-stack", "Stack")}</h3>')
-    st = cfg["stack"]
-    out.append('<p align="center">')
-    out.append(f'  <picture><source media="(prefers-color-scheme: dark)" srcset="{srcset("https://skillicons.dev/icons?i=" + st["languages"] + "&theme=dark")}">'
-               f'<img src="https://skillicons.dev/icons?i={st["languages"]}&theme=light" alt="Languages: {st["languages"].replace(",", ", ")}"></picture>')
-    out.append("  <br>")
-    out.append(f'  <picture><source media="(prefers-color-scheme: dark)" srcset="{srcset("https://skillicons.dev/icons?i=" + st["tools"] + "&theme=dark")}">'
-               f'<img src="https://skillicons.dev/icons?i={st["tools"]}&theme=light" alt="Tools: {st["tools"].replace(",", ", ")}"></picture>')
-    out.append("</p>")
     out.append("")
     out.append(f'<p align="center">{pic("assets/commit", "git commit -m fix stuff. Just kidding.")}</p>')
     out.append(f'<p align="center">{pic("assets/dodge", "dodge.exe")}</p>')

@@ -35,10 +35,5 @@
     "linkedin": "https://www.linkedin.com/in/el-steven/",
     "fiverr": "https://www.fiverr.com/ryuniii/",
     "email": "dcruzsteven1@gmail.com"
-  },
-
-  "stack": {
-    "languages": "java,python,ts,js,kotlin,elixir,rust",
-    "tools": "astro,react,fastapi,spring,supabase,postgres,docker,git"
   }
 }

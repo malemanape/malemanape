@@ -32,6 +32,9 @@ jobs:
 
       - run: pip install fonttools
 
+      - name: Draw the Stack panel from the portfolio's /stack.json (it keeps the last good copy if the site is down)
+        run: python scripts/stack.py
+
       - name: Draw the live cards
         run: python scripts/live.py
         env:

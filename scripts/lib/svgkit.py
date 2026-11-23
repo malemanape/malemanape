@@ -71,9 +71,29 @@ def text_width(s: str, size: float, wght=700, wdth=100, ls=0.0, mono=False, bold
     return w - (ls if s else 0)
 
 
+class Glyphs:
+    """Outlines each glyph once, in <defs>, so text-heavy images can <use> it instead of
+    repeating the outline every time a letter appears. Pass it to text() as book=, and
+    put book.defs() somewhere in the image."""
+
+    def __init__(self, prefix: str = "g"):
+        self.prefix, self.paths = prefix, {}
+
+    def ref(self, font_key: str, gs, g: str) -> str:
+        key = f"{font_key}/{g}"
+        if key not in self.paths:
+            pen = SVGPathPen(gs, ntos=lambda v: f"{v:.0f}")
+            gs[g].draw(pen)
+            self.paths[key] = (f"{self.prefix}{len(self.paths)}", pen.getCommands())
+        return self.paths[key][0]
+
+    def defs(self) -> str:
+        return "<defs>" + "".join(f'<path id="{i}" d="{d}"/>' for i, d in self.paths.values() if d) + "</defs>"
+
+
 def text(s: str, x: float, y: float, size: float, fill: str, *, wght=700, wdth=100, ls=0.0,
-         anchor="start", mono=False, bold=False, extra="") -> str:
-    """A <path> with the text outlined. y is the baseline."""
+         anchor="start", mono=False, bold=False, extra="", book: Glyphs | None = None) -> str:
+    """A <path> with the text outlined (or <use>s of a Glyphs book). y is the baseline."""
     _, gs, cmap, hmtx, upm = _mono(bold) if mono else _archivo(wght, wdth)
     width = text_width(s, size, wght, wdth, ls, mono, bold)
     if anchor == "middle":
@@ -81,6 +101,17 @@ def text(s: str, x: float, y: float, size: float, fill: str, *, wght=700, wdth=1
     elif anchor == "end":
         x -= width
     k = size / upm
+    if book is not None:
+        font_key = f"m{int(bold)}" if mono else f"a{wght}-{wdth}"
+        # one scaled group per string; inside it each letter is a <use> at an x in font units
+        uses, ux = "", 0.0
+        for ch in s:
+            g = cmap.get(ord(ch)) or cmap.get(ord("?"))
+            if ch != " ":
+                uses += f'<use href="#{book.ref(font_key, gs, g)}" x="{ux:.0f}"/>'
+            ux += hmtx[g][0] + ls / k
+        return (f'<g fill="{fill}"{extra} transform="translate({x:.1f} {y:.1f}) scale({k:.5f} {-k:.5f})">{uses}</g>'
+                if uses else "")
     pen = SVGPathPen(gs, ntos=lambda v: f"{v:.1f}".rstrip("0").rstrip("."))
     cx = x
     for ch in s:

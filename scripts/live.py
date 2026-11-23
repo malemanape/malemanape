@@ -179,12 +179,28 @@ def streaks(days):
     return cur, longest
 
 
+RANKS = ((1500, "S", "Legend"), (700, "A+", "Elite"), (350, "A", "Rising star"),
+         (180, "B+", "Climbing"), (80, "B", "Warming up"), (0, "C", "Just spawned"))
+
+
+def aura_score(d) -> int:
+    return d["commits"] + 3 * d["prs"] + d["issues"] + 4 * d["stars"] + 5 * d["contributed"]
+
+
 def aura(d) -> str:
-    score = d["commits"] + 3 * d["prs"] + d["issues"] + 4 * d["stars"] + 5 * d["contributed"]
-    for cut, grade in ((1500, "S"), (700, "A+"), (350, "A"), (180, "B+"), (80, "B")):
+    return rank(d)[0]
+
+
+def rank(d) -> tuple[str, str, float, int, str]:
+    """(grade, title, progress to the next grade 0..1, points still needed, next grade)."""
+    score = aura_score(d)
+    for i, (cut, grade, title) in enumerate(RANKS):
         if score >= cut:
-            return grade
-    return "C"
+            if i == 0:
+                return grade, title, 1.0, 0, ""
+            nxt_cut, nxt, _ = RANKS[i - 1]
+            return grade, title, (score - cut) / (nxt_cut - cut), nxt_cut - score, nxt
+    return RANKS[-1][1], RANKS[-1][2], 0.0, RANKS[-2][0] - score, RANKS[-2][1]
 
 
 def ago(iso: str) -> str:
@@ -227,46 +243,83 @@ def sh(c, x, y, w, h, color):
 
 # ---------------------------------------------------------------- cards
 
+def segs(c, x, y, filled, n=10, seg=11.0, gap=3.0, h=8, color=None):
+    """The portfolio's power bar: filled blocks, then hollow ones."""
+    out = ""
+    for i in range(n):
+        if i < filled:
+            out += f'<rect x="{x + i * (seg + gap):.1f}" y="{y}" width="{seg}" height="{h}" fill="{color or c["ink"]}"/>'
+        else:
+            out += (f'<rect x="{x + i * (seg + gap) + 0.5:.1f}" y="{y + 0.5}" width="{seg - 1}" height="{h - 1}" fill="none" '
+                    f'stroke="{c["ink"]}" stroke-width="1" opacity="0.35"/>')
+    return out
+
+
 def stats_card(theme, d):
     c = PALETTES[theme]
-    pw, ph = 404, 196
-    body = sh(c, 0, 0, pw, ph, c["ink"]) + panel_plain(c, 0, 0, pw, ph, "~/el/stats")
-    rows = [("Commits (past year)", d["commits"]), ("Pull requests", d["prs"]), ("Issues", d["issues"]),
-            ("Stars earned", d["stars"]), ("Contributed to", d["contributed"])]
-    for i, (k, v) in enumerate(rows):
-        y = 60 + i * 26
-        body += text(k, 18, y, 14, c["ink"], wght=600) + text(f"{v:,}", 268, y, 15, c["ink"], wght=700, anchor="end")
-    g = aura(d)
-    pts = " ".join(f"{338 + (52 if i % 2 == 0 else 28) * math.cos(i * math.pi / 8 - math.pi / 2):.1f},"
-                   f"{112 + (52 if i % 2 == 0 else 28) * math.sin(i * math.pi / 8 - math.pi / 2):.1f}" for i in range(16))
+    pw, ph = 404, 212
+    # left: aura rank, how close the next one is, and the numbers behind it
+    body = sh(c, 0, 0, pw, ph, c["accent"]) + panel_plain(c, 0, 0, pw, ph, "~/el/power-level")
+    g, title, prog, need, nxt = rank(d)
+    bx, by = 70, 92
+    pts = " ".join(f"{bx + (48 if i % 2 == 0 else 26) * math.cos(i * math.pi / 8 - math.pi / 2):.1f},"
+                   f"{by + (48 if i % 2 == 0 else 26) * math.sin(i * math.pi / 8 - math.pi / 2):.1f}" for i in range(16))
     body += (f'<polygon class="burst" points="{pts}" fill="{c["accent"]}" stroke="{c["ink"]}" stroke-width="3" stroke-linejoin="round"/>'
-             + text(g, 338, 122, 30, c["white"], wght=700, wdth=70, anchor="middle")
-             + text("AURA", 338, 138, 9, c["white"], wght=700, ls=1, anchor="middle"))
-    # languages
+             + text(g, bx, by + 10, 30, c["white"], wght=700, wdth=70, anchor="middle")
+             + text("AURA", bx, by + 25, 8.5, c["white"], wght=700, ls=1, anchor="middle"))
+    body += text("AURA RANK", 138, 58, 10.5, c["muted"], mono=True, bold=True, ls=1)
+    body += text(title, 138, 88, 28, c["ink"], wght=700, wdth=70)
+    body += segs(c, 138, 100, round(prog * 10), seg=13, gap=3.5, h=9, color=c["accent"])
+    body += text(f"{need:,} pts to {nxt}" if nxt else "Max rank. Keep it", 138, 126, 11.5, c["muted"], wght=500)
+    stats = [(d["commits"], "COMMITS"), (d["prs"], "PRS"), (d["issues"], "ISSUES"), (d["stars"], "STARS"), (d["contributed"], "REPOS")]
+    tw = (pw - 6) / len(stats)
+    body += f'<rect x="3" y="146" width="{pw - 6}" height="{ph - 149}" fill="{c["ink"]}"/>'
+    for i, (v, k) in enumerate(stats):
+        cx = 3 + tw * i + tw / 2
+        if i:
+            body += f'<line x1="{3 + tw * i:.1f}" y1="154" x2="{3 + tw * i:.1f}" y2="{ph - 11}" stroke="{c["card"]}" stroke-width="1" opacity="0.25"/>'
+        body += text(f"{v:,}", cx, 182, 24, c["on_ink_accent"] if i == 0 else c["card"], wght=700, wdth=70, anchor="middle")
+        body += text(k, cx, 199, 9, c["card"], mono=True, bold=True, ls=0.5, anchor="middle", extra=' opacity="0.75"')
+    # right: languages as power bars, with their logos
     x0 = pw + 22
     body += sh(c, x0, 0, pw, ph, c["ink"]) + panel_plain(c, x0, 0, pw, ph, "~/el/languages")
     total = sum(v for v, _ in d["langs"].values()) or 1
     top = sorted(d["langs"].items(), key=lambda kv: -kv[1][0])[:5]
-    rest = total - sum(v for _, (v, _) in top)
-    items = [(n, v / total, col) for n, (v, col) in top] + ([("Other", rest / total, c["muted"])] if rest > 0 else [])
-    bx, by, bw = x0 + 18, 48, pw - 36
-    body += f'<rect x="{bx}" y="{by}" width="{bw}" height="14" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
-    cx = bx + 1.25
-    for n, share, col in items:
-        w = (bw - 2.5) * share
-        body += f'<rect x="{cx:.1f}" y="{by + 1.25}" width="{max(w, 0):.1f}" height="11.5" fill="{col}"/>'
-        cx += w
-    for i, (n, share, col) in enumerate(items):
-        col_x = bx + (i % 2) * (bw / 2 + 6)
-        y = by + 44 + (i // 2) * 28
-        body += f'<circle cx="{col_x + 6}" cy="{y - 5}" r="6" fill="{col}" stroke="{c["ink"]}" stroke-width="1.5"/>'
-        body += text(n, col_x + 18, y, 14, c["ink"], wght=600)
-        body += text(f"{share * 100:.0f}%", col_x + bw / 2 - 14, y, 14, c["ink"], wght=700, anchor="end")
-    label = (f"Stats: {d['commits']} commits in the past year, {d['prs']} pull requests, {d['issues']} issues, "
-             f"{d['stars']} stars, contributed to {d['contributed']} repos. Top languages: "
-             + ", ".join(f"{n} {s * 100:.0f}%" for n, s, _ in items))
-    css = ".burst{transform-origin:338px 112px;animation:spin 24s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}"
+    lead = top[0][1][0] / total if top else 1
+    L = stack_logos()
+    for i, (n, (v, col)) in enumerate(top):
+        y = 56 + i * 31
+        share = v / total
+        lg = L.get(n)
+        if lg:
+            body += logo(c, lg, x0 + 18, y - 13, 16, c["ink"])
+        else:
+            body += f'<circle cx="{x0 + 26}" cy="{y - 5}" r="6" fill="{col}" stroke="{c["ink"]}" stroke-width="1.5"/>'
+        body += text(fit(n, 14, 108, wght=700), x0 + 42, y, 14, c["ink"], wght=700)
+        body += segs(c, x0 + 160, y - 10, max(1, round(share / lead * 10)), seg=14, gap=3.5, h=10, color=col)
+        body += text(f"{share * 100:.0f}%", x0 + pw - 18, y, 13, c["ink"], wght=700, anchor="end")
+    body += text("Share of code across my repos. Top language fills the bar.", x0 + 18, ph - 12, 10, c["muted"], wght=400)
+    label = (f"Power level: aura rank {g} ({title}), {d['commits']} commits in the past year, {d['prs']} pull requests, "
+             f"{d['issues']} issues, {d['stars']} stars, contributed to {d['contributed']} repos. Top languages: "
+             + ", ".join(f"{n} {v / total * 100:.0f}%" for n, (v, _) in top))
+    css = (f".burst{{transform-origin:{bx}px {by}px;animation:spin 24s linear infinite}}"
+           "@keyframes spin{to{transform:rotate(360deg)}}")
     return doc(W, ph + 8, body, label, css)
+
+
+def stack_logos() -> dict:
+    """Logos by name, from the portfolio's stack.json that scripts/stack.py saved."""
+    f = ROOT / "generated" / "stack.json"
+    return json.loads(f.read_text(encoding="utf-8")).get("logos", {}) if f.exists() else {}
+
+
+def logo(c, entry, x, y, size, color):
+    """A Simple Icons logo (24×24 path) or a lettered tile, top-left at x, y."""
+    if "path" in entry:
+        return f'<path transform="translate({x:.1f} {y:.1f}) scale({size / 24:.4f})" d="{entry["path"]}" fill="{color}"/>'
+    t, fs = entry["tile"], size * 0.45
+    return (f'<rect x="{x + 0.75:.1f}" y="{y + 0.75:.1f}" width="{size - 1.5:.1f}" height="{size - 1.5:.1f}" fill="none" stroke="{color}" stroke-width="1.5"/>'
+            + text(t, x + size / 2, y + size / 2 + fs * 0.36, fs, color, mono=True, bold=True, anchor="middle"))
 
 
 def panel_plain(c, x, y, w, h, title):

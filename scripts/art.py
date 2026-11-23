@@ -42,6 +42,53 @@ def el_on_rock(c: dict, uid: str) -> str:
     )
 
 
+# ---------------------------------------------------------------- El running, side-on
+
+def el_runner(c, uid):
+    """El in profile, facing right, feet at (0,0), about 104 units tall. Legs swing from the hip,
+    the body bobs twice per stride, the cape ripples, and the sword rides on his right shoulder."""
+    ink, acc, paper = c["ink"], c["accent"], c["paper"]
+    leg = ('<path d="M-5 0 L6 0 L7 -20 L5 -44 L-6 -44 L-5 -20 Z" fill="{f}"/>'
+           '<path d="M-7 -5 L11 -5 L12 0 L-7 0 Z" fill="{f}"/>')
+    cape_a = "M-4 -86 C-20 -84 -34 -76 -46 -62 C-38 -60 -30 -62 -24 -58 C-30 -52 -36 -46 -40 -38 C-26 -42 -16 -52 -8 -60 Z"
+    cape_b = "M-4 -86 C-22 -86 -38 -80 -52 -70 C-44 -66 -36 -66 -30 -62 C-38 -56 -44 -48 -50 -42 C-32 -44 -18 -54 -8 -60 Z"
+    torso = "M-11 -46 C-14 -62 -12 -80 -2 -90 L10 -90 C16 -82 16 -62 11 -46 Z"
+    head = ("M-4 -100 C-4 -110 2 -116 10 -116 C18 -116 22 -110 22 -102 C22 -94 16 -88 8 -88 C0 -88 -4 -93 -4 -100 Z")
+    hair = ("M-6 -102 C-8 -112 -2 -120 8 -121 L4 -127 L14 -122 L16 -130 L21 -121 L28 -124 L24 -115 "
+            "C27 -111 27 -105 24 -101 L18 -108 L12 -104 L6 -110 L0 -102 Z")
+    # the sword, drawn along +x from the guard, then laid back over the shoulder
+    sword = (f'<g transform="translate(0 -84) rotate(-155)">'
+             f'<path d="M-24 -2.6 L-2 -2.6 L-2 2.6 L-24 2.6 Z" fill="{ink}"/>'
+             f'<circle cx="-27" cy="0" r="4.2" fill="{acc}" stroke="{ink}" stroke-width="2"/>'
+             f'<path d="M-3 -14 L3 -14 L3 14 L-3 14 Z" fill="{ink}"/>'
+             f'<path d="M3 -9 L90 -9 L104 0 L90 9 L3 9 Z" fill="{paper}" stroke="{ink}" stroke-width="3" stroke-linejoin="round"/>'
+             f'<path d="M10 0 L84 0" stroke="{acc}" stroke-width="3" stroke-linecap="round"/>'
+             f'</g>')
+    arm = f'<path d="M4 -84 C8 -76 12 -74 17 -76" fill="none" stroke="{ink}" stroke-width="7" stroke-linecap="round"/>'
+    hand = f'<circle cx="17" cy="-76" r="4.8" fill="{ink}"/>'
+    return (
+        f'<g class="{uid}bob">'
+        f'<g transform="translate(0 -44)"><g class="{uid}legB"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
+        f'<path d="{cape_a}" fill="{acc}" stroke="{ink}" stroke-width="3" stroke-linejoin="round">'
+        f'<animate attributeName="d" dur="0.6s" repeatCount="indefinite" values="{cape_a};{cape_b};{cape_a}"/></path>'
+        f'{sword}'
+        f'<path d="{torso}" fill="{ink}"/>'
+        f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
+        f'<path d="{head}" fill="{ink}"/>'
+        f'<path d="{hair}" fill="{ink}"/>'
+        f'{arm}{hand}'
+        f'</g>'
+    )
+
+
+def runner_css(uid, stride=0.6):
+    return (f".{uid}legF{{animation:{uid}sw {stride}s ease-in-out infinite}}"
+            f".{uid}legB{{animation:{uid}sw {stride}s ease-in-out infinite;animation-delay:-{stride / 2}s}}"
+            f"@keyframes {uid}sw{{0%{{transform:rotate(-36deg)}}50%{{transform:rotate(36deg)}}100%{{transform:rotate(-36deg)}}}}"
+            f".{uid}bob{{animation:{uid}bob {stride / 2}s ease-in-out infinite alternate}}"
+            f"@keyframes {uid}bob{{from{{transform:translateY(0)}}to{{transform:translateY(-5px)}}}}")
+
+
 # ---------------------------------------------------------------- banner
 
 def banner(theme: str, cfg: dict) -> str:

@@ -26,13 +26,14 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg"><img src="assets/gallery-light.svg" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-building-dark.svg"><img src="assets/h-building-light.svg" alt="Currently building" width="830"></picture></h3>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg"><img src="generated/ticker-light.svg" alt="Latest pushes" width="830"></picture></p>
 <p align="center">
-  <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg"><img src="generated/repo-1-light.svg" alt="webapp-secondserve" width="412"></picture></a>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg"><img src="generated/repo-2-light.svg" alt="my-first-rag (coming soon)" width="412"></picture>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg"><img src="generated/repo-1-light.svg" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg"><img src="generated/repo-2-light.svg" alt="Ka-dugo" width="412"></picture></a>
 </p>
 <p align="center">
   <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg"><img src="generated/repo-3-light.svg" alt="ThriftBite" width="412"></picture></a>
-  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg"><img src="generated/repo-4-light.svg" alt="my-portfolio" width="412"></picture></a>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg"><img src="generated/repo-4-light.svg" alt="my-first-rag (coming soon)" width="412"></picture>
 </p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg"><img src="assets/h-stack-light.svg" alt="Stack" width="830"></picture></h3>

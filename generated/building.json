@@ -1,0 +1,18 @@
+[
+  {
+    "repo": "malemanape/my-portfolio",
+    "upcoming": false
+  },
+  {
+    "repo": "malemanape/Ka-dugo",
+    "upcoming": false
+  },
+  {
+    "repo": "malemanape/ThriftBite",
+    "upcoming": false
+  },
+  {
+    "repo": "malemanape/my-first-rag",
+    "upcoming": true
+  }
+]

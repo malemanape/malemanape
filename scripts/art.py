@@ -7,9 +7,12 @@ Writes assets/<name>-light.svg and assets/<name>-dark.svg.
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
+import math
 import sys
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.svgkit import (MONO_ADV, MONO_STACK, PALETTES, ROOT, THEMES, config, doc, dots, frames_css, panel,
@@ -118,8 +121,55 @@ def runner_css(uid, stride=0.6):
 
 # ---------------------------------------------------------------- banner
 
+# ---------------------------------------------------------------- the time of day, in your time zone
+
+PERIODS = (  # (from hour, name, what the visitor says)
+    (5, "morning", "morning, El. coffee first (o_o)"),
+    (10, "day", "yes El, we see the fit (¬_¬)"),
+    (16, "sunset", "the sunset arc hits different (^_^)"),
+    (19, "night", "El, go to sleep (-_-) zZ"),
+)
+
+
+def period(cfg: dict) -> tuple[str, str]:
+    """(name, visitor line) for the hour right now where you live. The Action redraws every hour."""
+    hour = dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).hour
+    if "--period" in sys.argv:  # for previews: --period night
+        name = sys.argv[sys.argv.index("--period") + 1]
+        return next((n, line) for _, n, line in PERIODS if n == name)
+    started = [p for p in PERIODS if hour >= p[0]]
+    _, name, line = started[-1] if started else PERIODS[-1]  # before 5 am it's still night
+    return name, line
+
+
+def sky(c: dict, theme: str, name: str) -> str:
+    """The sky behind El, right of the black stripe: sunrise, a high sun, sunset, or stars and a moon."""
+    dark = theme == "dark"
+    area = '<clipPath id="sky"><polygon points="672,3 827,3 827,297 502,297"/></clipPath>'
+    if name == "morning":
+        fill = (f'<rect x="0" y="0" width="830" height="300" fill="{"#3B2F22" if dark else "#F6DDB6"}" opacity="0.7"/>'
+                f'<circle cx="770" cy="236" r="34" fill="#F2B35B"/>')
+    elif name == "sunset":
+        fill = (f'<rect x="0" y="0" width="830" height="300" fill="{"#4A2A1C" if dark else "#F3B68A"}" opacity="0.75"/>'
+                f'<circle cx="700" cy="250" r="52" fill="#E8693A"/>'
+                f'<path d="M560 214 H827 M590 196 H827" stroke="#E8693A" stroke-width="3" opacity="0.5"/>')
+    elif name == "night":
+        stars = ((612, 40), (700, 26), (742, 92), (806, 128), (650, 118), (780, 196), (690, 168), (812, 24), (560, 180))
+        fill = (f'<rect x="0" y="0" width="830" height="300" fill="{"#0B1222" if dark else "#2E3F66"}"/>'
+                + "".join(f'<circle class="tw{i % 3}" cx="{x}" cy="{y}" r="{1.6 + (i % 3) * 0.6}" fill="#F4EFE4"/>'
+                          for i, (x, y) in enumerate(stars))
+                + '<path d="M806 40 A22 22 0 1 0 806 84 A17 17 0 1 1 806 40 Z" fill="#F4EFE4"/>')
+    else:  # day
+        rays = "".join(f'<path d="M{802 + 22 * math.cos(k * math.pi / 4):.1f} {44 + 22 * math.sin(k * math.pi / 4):.1f} '
+                       f'L{802 + 30 * math.cos(k * math.pi / 4):.1f} {44 + 30 * math.sin(k * math.pi / 4):.1f}" '
+                       f'stroke="#F2B35B" stroke-width="3" stroke-linecap="round"/>' for k in range(8))
+        fill = f'<g class="spin">{rays}</g><circle cx="802" cy="44" r="15" fill="#F2B35B"/>'
+    return f"<defs>{area}</defs><g clip-path=\"url(#sky)\">{fill}</g>"
+
+
 def banner(theme: str, cfg: dict) -> str:
     c = PALETTES[theme]
+    when, says = period(cfg)
     first, _, last = cfg["name"].upper().rpartition(" D. ")
     line1, line2 = (first, "D. " + last) if first else (cfg["name"].upper(), "")
     body = (
@@ -134,21 +184,25 @@ def banner(theme: str, cfg: dict) -> str:
     )
     tag_w = text_width(cfg["tagline"], 14, 700, 100, 1) + 24
     body += f'<rect x="40" y="252" width="{tag_w:.0f}" height="28" fill="{c["ink"]}"/>' + text(cfg["tagline"], 52, 271, 14, c["card"], ls=1)
+    body += sky(c, theme, when)
     body += f'<g transform="translate(585 50) scale(0.735)">{el_on_rock(c, "b")}</g>'
     # the comment that pops in from nowhere
     body += (
         '<g class="pop">'
-        f'<rect x="420" y="40" width="168" height="46" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
+        f'<rect x="420" y="40" width="{text_width(says, 12, 600) + 22:.0f}" height="46" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
         + text("@visitor", 430, 57, 10.5, c["accent"], wght=700)
-        + text("yes El, we see the fit (¬_¬)", 430, 76, 12, c["ink"], wght=600)
+        + text(says, 430, 76, 12, c["ink"], wght=600)
         + "</g>"
     )
     css = (
         ".pop{opacity:0;transform-origin:504px 63px;animation:pop 6s infinite}"
         "@keyframes pop{0%,20%{opacity:0;transform:scale(.6) rotate(-4deg)}27%{opacity:1;transform:scale(1.06) rotate(1deg)}"
         "31%,85%{opacity:1;transform:scale(1) rotate(0)}92%,100%{opacity:0;transform:scale(.9)}}"
+        ".spin{transform-origin:802px 44px;animation:spin 30s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}"
+        ".tw0,.tw1,.tw2{animation:tw 3s ease-in-out infinite alternate}.tw1{animation-delay:-1s}.tw2{animation-delay:-2s}"
+        "@keyframes tw{from{opacity:1}to{opacity:.25}}"
     )
-    return doc(W, 300, body, f"{cfg['name']}: {cfg['tagline'].lower()} El, seen from behind, stands on a rock with his cape in the wind.", css)
+    return doc(W, 300, body, f"{cfg['name']}: {cfg['tagline'].lower()} El, seen from behind, stands on a rock with his cape in the wind, {when} sky behind him.", css)
 
 
 # ---------------------------------------------------------------- typing line
@@ -430,7 +484,11 @@ for _key, _title in HEADINGS.items():
 
 if __name__ == "__main__":
     cfg = config()
-    only = sys.argv[1:] or list(BUILDERS)
+    args = sys.argv[1:]
+    if "--period" in args:  # preview a time of day: python scripts/art.py banner --period night
+        i = args.index("--period")
+        args = args[:i] + args[i + 2:]
+    only = args or list(BUILDERS)
     for name in only:
         for theme in THEMES:
             p = write(name, theme, BUILDERS[name](theme, cfg))

@@ -305,6 +305,42 @@ def sky(c: dict, theme: str, name: str) -> str:
     return f"<defs>{area}</defs><g clip-path=\"url(#sky)\">{fill}</g>"
 
 
+# ---------------------------------------------------------------- the shield by the rock
+
+# a heater shield: flat top, straight upper sides, curving into a point. origin = the middle of the top edge
+HEATER = "M-36 0 L36 0 L36 30 C36 58 20 78 0 92 C-20 78 -36 58 -36 30 Z"
+HEATER_IN = "M-28 7 L28 7 L28 31 C28 54 15 71 0 82 C-15 71 -28 54 -28 31 Z"
+
+
+def stuck_arrow(c: dict, x: float, y: float, ang: float, ln: float = 44) -> str:
+    """An arrow buried in a surface at (x, y), its shaft sticking out at ang degrees, with cracks where it hit."""
+    a = math.radians(ang)
+    ex, ey = x + ln * math.cos(a), y + ln * math.sin(a)
+    ink = c["ink"]
+    cracks = "".join(f'<path d="M{x} {y} l{7 * math.cos(math.radians(k)):.1f} {7 * math.sin(math.radians(k)):.1f}" '
+                     f'stroke="{ink}" stroke-width="2" stroke-linecap="round"/>' for k in (ang + 150, ang + 210))
+    return (cracks
+            + f'<line x1="{x}" y1="{y}" x2="{ex:.1f}" y2="{ey:.1f}" stroke="{ink}" stroke-width="4" stroke-linecap="round"/>'
+            f'<g transform="translate({ex:.1f} {ey:.1f}) rotate({ang})">'
+            f'<path d="M2 0 L-18 0 L-4 -9 L2 -9 Z" fill="{c["accent"]}" stroke="{ink}" stroke-width="2.5" stroke-linejoin="round"/>'
+            f'<path d="M2 0 L-18 0 L-4 9 L2 9 Z" fill="{c["card"]}" stroke="{ink}" stroke-width="2.5" stroke-linejoin="round"/>'
+            f'<path d="M2 -3 L7 0 L2 3" fill="none" stroke="{ink}" stroke-width="2.5"/></g>')
+
+
+def shield_by_rock(c: dict) -> str:
+    """El's heater shield, split cream and cyan, propped on its point in front of the rock with two arrows in it.
+    Drawn in el_on_rock's coordinates."""
+    ink = c["ink"]
+    return (f'<path d="M58 334 L108 334" stroke="{ink}" stroke-width="4" stroke-linecap="round" opacity="0.4"/>'
+            '<g transform="translate(64 243) rotate(-10)">'
+            f'<path d="{HEATER}" fill="{c["card"]}"/>'
+            f'<path d="M0 0 L36 0 L36 30 C36 58 20 78 0 92 Z" fill="{c["accent"]}"/>'
+            f'<path d="{HEATER}" fill="none" stroke="{ink}" stroke-width="5" stroke-linejoin="round"/>'
+            f'<path d="{HEATER_IN}" fill="none" stroke="{ink}" stroke-width="2.5"/>'
+            f'<line x1="0" y1="0" x2="0" y2="92" stroke="{ink}" stroke-width="3"/>'
+            + stuck_arrow(c, -12, 26, -150) + stuck_arrow(c, 10, 46, -115) + "</g>")
+
+
 def banner(theme: str, cfg: dict) -> str:
     c = PALETTES[theme]
     when, says = period(cfg)
@@ -323,7 +359,7 @@ def banner(theme: str, cfg: dict) -> str:
     tag_w = text_width(cfg["tagline"], 14, 700, 100, 1) + 24
     body += f'<rect x="40" y="252" width="{tag_w:.0f}" height="28" fill="{c["ink"]}"/>' + text(cfg["tagline"], 52, 271, 14, c["card"], ls=1)
     body += sky(c, theme, when)
-    body += f'<g transform="translate(585 50) scale(0.735)">{el_on_rock(c, "b")}</g>'
+    body += f'<g transform="translate(585 50) scale(0.735)">{el_on_rock(c, "b")}{shield_by_rock(c)}</g>'
     # the comment that pops in from nowhere
     body += (
         '<g class="pop">'
@@ -340,7 +376,7 @@ def banner(theme: str, cfg: dict) -> str:
         ".tw0,.tw1,.tw2{animation:tw 3s ease-in-out infinite alternate}.tw1{animation-delay:-1s}.tw2{animation-delay:-2s}"
         "@keyframes tw{from{opacity:1}to{opacity:.25}}"
     )
-    return doc(W, 300, body, f"{cfg['name']}: {cfg['tagline'].lower()} El, seen from behind, stands on a rock with his cape in the wind, {when} sky behind him.", css)
+    return doc(W, 300, body, f"{cfg['name']}: {cfg['tagline'].lower()} El, seen from behind, stands on a rock with his cape in the wind and an arrow-struck shield propped against it, {when} sky behind him.", css)
 
 
 # ---------------------------------------------------------------- typing line

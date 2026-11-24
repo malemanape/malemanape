@@ -475,7 +475,13 @@ def year_card(theme, d, weapon="sword", cfg=None):
     return doc(W, h + 14, body, label, css)
 
 
-def repo_card(theme, repo, i, user):
+def short_name(cfg: dict) -> str:
+    """What a team card calls you: the first word of your name ("El"), else the username."""
+    first = (cfg.get("name") or "").split()
+    return first[0].rstrip(".") if first else cfg["user"]
+
+
+def repo_card(theme, repo, i, user, me):
     """One recent repo, drawn only from what GitHub knows: its About text, language,
     latest commit, last push, and whether anyone else commits to it."""
     c = PALETTES[theme]
@@ -494,7 +500,8 @@ def repo_card(theme, repo, i, user):
     when = ago(repo["pushedAt"]) if repo.get("pushedAt") else ""
     others = len(people(repo) - {user.lower()})
     tag = "Private" if repo.get("isPrivate") else ("Team" if others else "Solo")
-    crew = f"you + {others} other{'s' if others > 1 else ''}" if others else ""
+    # the card is one picture for every visitor, so it names you ("El + 5 others"), never "you"
+    crew = f"{me} + {others} other{'s' if others > 1 else ''}" if others else ""
     name_s = fit(name, 16, w - 120, wght=700)
     body += text(name_s, 18, 32, 16, c["accent"], wght=700)
     tx = 18 + text_width(name_s, 16, 700) + 10
@@ -615,7 +622,7 @@ if __name__ == "__main__":
         write("year", theme, year_card(theme, d, weapon, cfg), "generated")
         write("ticker", theme, ticker(theme, d), "generated")
         for i, repo in enumerate(d["cards"]):
-            write(f"repo-{i + 1}", theme, repo_card(theme, repo, i, cfg["user"]), "generated")
+            write(f"repo-{i + 1}", theme, repo_card(theme, repo, i, cfg["user"], short_name(cfg)), "generated")
     # readme.py links the cards from this list, since the repos change from run to run
     (ROOT / "generated" / "activity.json").write_text(
         json.dumps([r["nameWithOwner"] for r in d["cards"]], indent=2) + "\n", encoding="utf-8")

@@ -76,11 +76,12 @@ def names(area: dict) -> list[str]:
 
 def groups(data: dict) -> list[tuple[str, str, list[str], bool]]:
     """(title, the portfolio's area icon, logo names, full width?) per card: languages,
-    frontend, backend and data as a 2×2 grid, then tools and design across the bottom."""
+    data, frontend and backend as a 2×2 grid (frontend and backend share a row),
+    then tools and design across the bottom."""
     areas = {a["id"]: a for a in data["areas"]}
     L = data.get("logos", {})
     cards = []
-    for key in ("languages", "web", "backend", "data"):
+    for key in ("languages", "data", "web", "backend"):
         a = areas.get(key)
         if a:
             cards.append((a["title"], a.get("icon", ""), [n for n in names(a) if n in L], False))

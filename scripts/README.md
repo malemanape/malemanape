@@ -7,7 +7,7 @@ Animation lives inside the images. Each image has a `-light` and a `-dark` versi
 |---|---|---|---|
 | Banner (with a sky for the time of day), typing line, about tiles, headings, commit joke, dodge.exe, footer | `assets/` | `scripts/art.py` | The Action, every hour |
 | ASCII gallery (seven scenes, one day from koi to El's wave) | `assets/gallery-*.svg` | `scripts/gallery.py` | By hand, when you change the art (commit the result) |
-| Stack icons (languages, then tools) | `generated/stack-*.svg` | `scripts/stack.py`, from the portfolio's `/stack.json` | The Action, every hour |
+| Stack cards (languages and data, frontend and backend, then tools and design; icons sized so each card is one row) | `generated/stack-*.svg` | `scripts/stack.py`, from the portfolio's `/stack.json` | The Action, every hour |
 | Power level, languages, streak, contribution year (El runs it with the weapon of the day), latest-pushes ticker, "recent activity" cards | `generated/` | `scripts/live.py` | The Action, every hour |
 | `README.md` | repo root | `scripts/readme.py` | The Action, every run |
 

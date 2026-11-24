@@ -76,11 +76,12 @@ def names(area: dict) -> list[str]:
 
 def groups(data: dict) -> list[tuple[str, str, list[str], bool]]:
     """(title, the portfolio's area icon, logo names, full width?) per card: languages,
-    frontend, backend and data as a 2×2 grid, then tools and design across the bottom."""
+    data, frontend and backend as a 2×2 grid (frontend and backend share a row),
+    then tools and design across the bottom."""
     areas = {a["id"]: a for a in data["areas"]}
     L = data.get("logos", {})
     cards = []
-    for key in ("languages", "web", "backend", "data"):
+    for key in ("languages", "data", "web", "backend"):
         a = areas.get(key)
         if a:
             cards.append((a["title"], a.get("icon", ""), [n for n in names(a) if n in L], False))
@@ -95,48 +96,75 @@ def groups(data: dict) -> list[tuple[str, str, list[str], bool]]:
     return cards
 
 
+def fit_tile(cards: list, half: float, full_w: float, pad: int) -> tuple[int, int]:
+    """The biggest tile (38px down to 30px) at which every card fits its logos on one row,
+    so cards side by side come out the same height. If none does, the smallest; rows then
+    wrap evenly (see stack_grid)."""
+    for tile in range(38, 29, -1):
+        tgap = round(tile * 0.21)
+        if all(len(items) * (tile + tgap) - tgap <= (full_w if full else half) - 2 * pad for _, _, items, full in cards):
+            return tile, tgap
+    return 30, 6
+
+
 def stack_grid(theme: str, data: dict) -> str:
     global BOOK
     BOOK = Glyphs(f"{theme[0]}g")
     c = PALETTES[theme]
     L = data.get("logos", {})
-    gap, sh = 18, 6
+    gap, sh, pad = 18, 6, 16
     half = (W - sh - gap) / 2
-    tile, tgap, pad = 38, 8, 16
-    body, label = "", []
-    x = y = 0.0
-    row_h = 0.0
-    for title, icon, items, full in groups(data):
-        w = W - sh if full else half
+    cards = groups(data)
+    tile, tgap = fit_tile(cards, half, W - sh, pad)
+
+    def layout(items: list, w: float) -> list[int]:
+        """How many logos go on each row: as few rows as fit, split evenly (5 + 4, not 8 + 1)."""
         per_row = max(1, int((w - 2 * pad + tgap) // (tile + tgap)))
-        rows = (len(items) + per_row - 1) // per_row
-        h = 30 + pad + rows * (tile + tgap) - tgap + pad
-        if full or x + w > W - sh + 1:
-            x, y = 0.0, y + (row_h + gap if row_h else 0)
-            row_h = 0.0
-        # the card: offset shadow, paper body, ink header with the area's own icon
-        body += (f'<rect x="{x + sh}" y="{y + sh}" width="{w}" height="{h}" fill="{c["ink"]}"/>'
-                 f'<rect x="{x + 1.5}" y="{y + 1.5}" width="{w - 3}" height="{h - 3}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="3"/>'
-                 f'<rect x="{x}" y="{y}" width="{w}" height="30" fill="{c["ink"]}"/>'
-                 f'<g transform="translate({x + 12} {y + 6}) scale(0.5625)" fill="none" stroke="{c["paper"]}" stroke-width="3" '
-                 f'stroke-linecap="square" stroke-linejoin="miter">{icon}</g>'
-                 + text(title.upper(), x + 40, y + 20, 12, c["paper"], mono=True, bold=True, ls=1)
-                 + text(str(len(items)), x + w - 14, y + 20, 12, c["on_ink_accent"], mono=True, bold=True, anchor="end"))
-        for i, name in enumerate(items):
-            r, col = divmod(i, per_row)
-            in_row = min(per_row, len(items) - r * per_row)
-            left = x + (w - (in_row * (tile + tgap) - tgap)) / 2  # each row centred in its card
-            tx = left + col * (tile + tgap)
-            ty = y + 30 + pad + r * (tile + tgap)
-            body += (f'<rect x="{tx:.1f}" y="{ty:.1f}" width="{tile}" height="{tile}" rx="7" fill="{c["ink"]}"/>'
-                     + logo(L.get(name), tx + 9, ty + 9, tile - 18, c["paper"]))
-        label.append(f"{title}: {', '.join(items)}")
-        row_h = max(row_h, h)
-        x = 0.0 if full else x + w + gap
-        if full:
-            y, row_h = y + h + gap, 0.0
-    total = y + row_h if row_h else y - gap
-    return doc(W, total + sh, BOOK.defs() + body, "Stack. " + "; ".join(label))
+        rows = max(1, -(-len(items) // per_row))
+        base, extra = divmod(len(items), rows)
+        return [base + (1 if r < extra else 0) for r in range(rows)]
+
+    # pair the half-width cards into rows; a row's cards share the tallest one's height
+    rows: list[list] = []
+    for card in cards:
+        if card[3] or not rows or rows[-1][0][3] or len(rows[-1]) == 2:
+            rows.append([card])
+        else:
+            rows[-1].append(card)
+
+    body, label = "", []
+    y = 0.0
+    for row in rows:
+        widths = [W - sh if card[3] else half for card in row]
+        splits = [layout(card[2], w) for card, w in zip(row, widths)]
+        n_rows = max(len(sp) for sp in splits)
+        h = 30 + pad + n_rows * (tile + tgap) - tgap + pad
+        x = 0.0
+        for (title, icon, items, full), w, split in zip(row, widths, splits):
+            # the card: offset shadow, paper body, ink header with the area's own icon
+            body += (f'<rect x="{x + sh}" y="{y + sh}" width="{w}" height="{h}" fill="{c["ink"]}"/>'
+                     f'<rect x="{x + 1.5}" y="{y + 1.5}" width="{w - 3}" height="{h - 3}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="3"/>'
+                     f'<rect x="{x}" y="{y}" width="{w}" height="30" fill="{c["ink"]}"/>'
+                     f'<g transform="translate({x + 12} {y + 6}) scale(0.5625)" fill="none" stroke="{c["paper"]}" stroke-width="3" '
+                     f'stroke-linecap="square" stroke-linejoin="miter">{icon}</g>'
+                     + text(title.upper(), x + 40, y + 20, 12, c["paper"], mono=True, bold=True, ls=1)
+                     + text(str(len(items)), x + w - 14, y + 20, 12, c["on_ink_accent"], mono=True, bold=True, anchor="end"))
+            # the logos: each row centred, and the block centred down the card when its neighbour is taller
+            block = len(split) * (tile + tgap) - tgap
+            top = y + 30 + pad + (h - 30 - 2 * pad - block) / 2
+            k = 0
+            for r, count in enumerate(split):
+                left = x + (w - (count * (tile + tgap) - tgap)) / 2
+                for col in range(count):
+                    tx, ty = left + col * (tile + tgap), top + r * (tile + tgap)
+                    inset = tile * 0.24
+                    body += (f'<rect x="{tx:.1f}" y="{ty:.1f}" width="{tile}" height="{tile}" rx="{tile * 0.18:.1f}" fill="{c["ink"]}"/>'
+                             + logo(L.get(items[k]), tx + inset, ty + inset, tile - 2 * inset, c["paper"]))
+                    k += 1
+            label.append(f"{title}: {', '.join(items)}")
+            x += w + gap
+        y += h + gap
+    return doc(W, y - gap + sh, BOOK.defs() + body, "Stack. " + "; ".join(label))
 
 
 if __name__ == "__main__":

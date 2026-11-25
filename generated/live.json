@@ -1,10 +1,10 @@
 {
   "latest_repo": {
-    "value": "my-portfolio",
-    "note": "My portfolio as a comic episode."
+    "value": "ThriftBite",
+    "note": "Surplus-food marketplace for Baguio: stores list end-of-day food at a discount, buyers reserve it and pick it up."
   },
   "this_week": {
-    "value": "401 contributions",
+    "value": "411 contributions",
     "note": "Active every day this week"
   }
 }

@@ -21,18 +21,18 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 <p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stack-dark.svg?v=f433958c"><img src="generated/stack-light.svg?v=582c1b18" alt="Stack: the languages and tools I build with" width="830"></picture></a></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stats-dark.svg?v=3360faf7"><img src="assets/h-stats-light.svg?v=a9f79ca3" alt="Stats" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=86539dcc"><img src="generated/stats-light.svg?v=937dc4c5" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=b9c55caa"><img src="generated/stats-light.svg?v=a3a191af" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=fbd7cf31"><img src="generated/streak-light.svg?v=403611f5" alt="Contribution streak" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=1cf2b809"><img src="generated/year-light.svg?v=17671f9a" alt="Contributions over the past year" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=d1e293db"><img src="generated/year-light.svg?v=41b2918f" alt="Contributions over the past year" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-gallery-dark.svg?v=fa0ee676"><img src="assets/h-gallery-light.svg?v=df6e154a" alt="The gallery" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg?v=921b5b74"><img src="assets/gallery-light.svg?v=462d2c0f" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-activity-dark.svg?v=4f0ceaf0"><img src="assets/h-activity-light.svg?v=751602b1" alt="Recent activity" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=128addab"><img src="generated/ticker-light.svg?v=c3bf0d8b" alt="Latest pushes" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=d2d17853"><img src="generated/ticker-light.svg?v=c311a78c" alt="Latest pushes" width="830"></picture></p>
 <p align="center">
-  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=0740929f"><img src="generated/repo-1-light.svg?v=7912e137" alt="my-portfolio" width="412"></picture></a>
-  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=d1305ed2"><img src="generated/repo-2-light.svg?v=17ad6cf6" alt="ThriftBite" width="412"></picture></a>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=742afaae"><img src="generated/repo-1-light.svg?v=2a9fed8c" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=58471733"><img src="generated/repo-2-light.svg?v=d649fa74" alt="ThriftBite" width="412"></picture></a>
 </p>
 <p align="center">
   <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=bbd31cbe"><img src="generated/repo-3-light.svg?v=b13a2af1" alt="webapp-secondserve" width="412"></picture></a>

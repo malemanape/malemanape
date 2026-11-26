@@ -4,6 +4,15 @@
   "episode": "EPISODE 01 · THE CHARACTER",
   "tagline": "FULL-STACK TODAY. AI ENGINEERING NEXT.",
 
+  "timezone": "Asia/Manila",
+  "day": [
+    { "from": 5,  "name": "morning", "says": "morning, El. coffee first (o_o)" },
+    { "from": 10, "name": "day",     "says": "yes El, we see the fit (¬_¬)" },
+    { "from": 16, "name": "sunset",  "says": "the sunset arc hits different (^_^)" },
+    { "from": 19, "name": "night",   "says": "El, go to sleep (-_-) zZ" }
+  ],
+  "live_banner": "",
+
   "wip": {
     "on": true,
     "title": "WORK IN PROGRESS",

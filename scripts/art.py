@@ -1,5 +1,6 @@
 """The art that comes from the config and the clock: banner (with its time-of-day sky), typing line,
 About tiles, section headings, the commit joke, dodge.exe and the footer. The Action reruns it every hour.
+The banner is also drawn once per time of day (assets/banner-<when>-<theme>.svg) for api/banner.js.
 
     python scripts/art.py                          # everything except the ASCII gallery (that's gallery.py)
     python scripts/art.py banner --period night    # one image, at a chosen time of day
@@ -259,23 +260,18 @@ def runner_css(uid, stride=0.6):
 
 # ---------------------------------------------------------------- the time of day, in your time zone
 
-PERIODS = (  # (from hour, name, what the visitor says)
-    (5, "morning", "morning, El. coffee first (o_o)"),
-    (10, "day", "yes El, we see the fit (¬_¬)"),
-    (16, "sunset", "the sunset arc hits different (^_^)"),
-    (19, "night", "El, go to sleep (-_-) zZ"),
-)
-
-
-def period(cfg: dict) -> tuple[str, str]:
-    """(name, visitor line) for the hour right now where you live."""
-    hour = dt.datetime.now(ZoneInfo(cfg.get("timezone", "Asia/Manila"))).hour
-    if "--period" in sys.argv:  # for previews: --period night
+def period(cfg: dict, name: str | None = None) -> tuple[str, str]:
+    """(name, visitor line) for a time of day: the one named, or the one it is now where you live.
+    The times and lines are the config's "day" list; api/banner.js reads the same list."""
+    day = cfg["day"]
+    if name is None and "--period" in sys.argv:  # for previews: --period night
         name = sys.argv[sys.argv.index("--period") + 1]
-        return next((n, line) for _, n, line in PERIODS if n == name)
-    started = [p for p in PERIODS if hour >= p[0]]
-    _, name, line = started[-1] if started else PERIODS[-1]  # before 5 am it's still night
-    return name, line
+    if name is None:
+        hour = dt.datetime.now(ZoneInfo(cfg["timezone"])).hour
+        started = [p for p in day if hour >= p["from"]]
+        name = (started[-1] if started else day[-1])["name"]  # before the first one it's still the last (night)
+    p = next(p for p in day if p["name"] == name)
+    return p["name"], p["says"]
 
 
 def sky(theme: str, name: str) -> str:
@@ -341,9 +337,10 @@ def shield_by_rock(c: dict) -> str:
 
 # ---------------------------------------------------------------- banner
 
-def banner(theme: str, cfg: dict) -> str:
+def banner(theme: str, cfg: dict, when: str | None = None) -> str:
+    """The banner, with the sky for `when` (a time of day from the config), or for now."""
     c = PALETTES[theme]
-    when, says = period(cfg)
+    when, says = period(cfg, when)
     first, _, last = cfg["name"].upper().rpartition(" D. ")
     line1, line2 = (first, "D. " + last) if first else (cfg["name"].upper(), "")
     body = (
@@ -669,3 +666,9 @@ if __name__ == "__main__":
         for theme in THEMES:
             p = write(name, theme, BUILDERS[name](theme, cfg))
             print(f"{p.relative_to(p.parents[1])}  {p.stat().st_size // 1024} KB")
+    if "banner" in only:
+        # every sky, so api/banner.js can serve the right one the moment someone opens the profile
+        for when in (p["name"] for p in cfg["day"]):
+            for theme in THEMES:
+                p = write(f"banner-{when}", theme, banner(theme, cfg, when))
+                print(f"{p.relative_to(p.parents[1])}  {p.stat().st_size // 1024} KB")

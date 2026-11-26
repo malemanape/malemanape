@@ -29,6 +29,21 @@ def pic(path: str, alt: str, width: int | str = 830) -> str:
             f'<img src="{fresh(path + "-light.svg")}" alt="{escape(alt)}" width="{width}"></picture>')
 
 
+def banner_pic(cfg: dict, alt: str) -> str:
+    """The banner. With "live_banner" set (where this repo is deployed on Vercel), its sky is picked when
+    someone opens the profile (api/banner.js), so it's right even when GitHub skips the hourly Action;
+    the fingerprint covers every sky, so a redrawn banner still gets fetched fresh. Without it, the
+    banner the Action drew last."""
+    base = cfg.get("live_banner", "").rstrip("/")
+    if not real(base):
+        return pic("assets/banner", alt)
+    skies = sorted((ROOT / "assets").glob("banner-*-*.svg"))
+    v = hashlib.sha1(b"".join(f.read_bytes() for f in skies)).hexdigest()[:8]
+    src = lambda theme: escape(f"{base}/api/banner?theme={theme}&v={v}")
+    return (f'<picture><source media="(prefers-color-scheme: dark)" srcset="{src("dark")}">'
+            f'<img src="{src("light")}" alt="{escape(alt)}" width="830"></picture>')
+
+
 def badge(label: str, message: str, href: str, color: str = "F4EFE4") -> str:
     url = f"https://img.shields.io/badge/{quote(label)}-{quote(message)}-{color}?style=for-the-badge&labelColor=15130F"
     return f'<a href="{escape(href)}"><img src="{url}" alt="{escape(label.title())}: {escape(message.lower())}"></a>'
@@ -58,7 +73,7 @@ def main():
         out.append(f'<p align="center">{pic("assets/wip", w.get("title", "Work in progress") + ": " + w.get("note", ""))}</p>')
     out.append('<p align="center">')
     tag = " ".join(w if w.rstrip(".") == "AI" else w.lower() for w in cfg["tagline"].split())
-    out.append(f'  <a href="{escape(site)}">{pic("assets/banner", cfg["name"] + ": " + tag[0].upper() + tag[1:])}</a>')
+    out.append(f'  <a href="{escape(site)}">{banner_pic(cfg, cfg["name"] + ": " + tag[0].upper() + tag[1:])}</a>')
     out.append("</p>")
     out.append(f'<p align="center">{pic("assets/typing", "> " + " / ".join(cfg["typing"]), 830)}</p>')
     out.append('<p align="center">')

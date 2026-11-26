@@ -208,16 +208,19 @@ WEAPON_NAMES = {"sword": "greatsword", "zweihander": "zweihander", "axe": "great
 CARRY = {"greatbow": "translate(4 -80) rotate(-152) scale(0.85)"}
 
 
-# the running cape: three shapes with the same commands, so it ripples smoothly from one to the next
-RUN_CAPE = [
-    "M9 -90 C4 -95 -6 -94 -11 -88 C-34 -88 -62 -84 -92 -72 C-84 -66 -80 -62 -76 -54 C-64 -58 -56 -54 -50 -46 "
-    "C-38 -50 -28 -46 -16 -40 C-14 -58 -10 -76 2 -86 Z",
-    "M9 -90 C4 -95 -6 -94 -11 -88 C-36 -92 -66 -92 -98 -86 C-90 -78 -86 -72 -82 -64 C-70 -66 -62 -60 -54 -52 "
-    "C-42 -54 -30 -48 -16 -40 C-14 -58 -10 -76 2 -86 Z",
-    "M9 -90 C4 -95 -6 -94 -11 -88 C-32 -84 -58 -76 -86 -60 C-78 -56 -74 -50 -72 -42 C-60 -48 -52 -44 -46 -38 "
-    "C-36 -42 -26 -40 -16 -40 C-14 -58 -10 -76 2 -86 Z",
-]
-RUN_FOLD = ["M-14 -84 C-30 -80 -46 -72 -58 -58", "M-14 -84 C-32 -84 -50 -78 -64 -66", "M-14 -84 C-28 -78 -42 -66 -52 -52"]
+# the running cape, as in the portfolio's grand opening (intro-art.ts): clasped at the collar, wrapped over his
+# shoulder and down his back past the torso, then sweeping back into one pointed tail that lifts in the wind.
+# Three shapes with the same commands, so it ripples smoothly from one to the next; w nudges the tail.
+def _run_cape(w0, w1, w2, w3):
+    return (f"M12 -88 C4 -98 -14 -98 -26 -94 "
+            f"C-50 {-96 + w0} -80 {-94 + w1} -104 {-88 + w2} "
+            f"Q-114 {-86 + w2} -124 {-82 + w3} "
+            f"C-104 {-62 + w3} -70 {-38 + w1} -34 -36 "
+            f"L-8 -42 C-2 -60 4 -74 12 -82 Z")
+
+
+RUN_CAPE = [_run_cape(0, 0, 0, 0), _run_cape(-4, -6, -9, -8), _run_cape(3, 4, 6, 7)]
+RUN_FOLD = ["M-10 -86 C-30 -76 -54 -64 -80 -56", "M-10 -86 C-32 -80 -58 -72 -84 -66", "M-10 -86 C-28 -74 -50 -60 -76 -50"]
 
 
 def el_runner(c, uid, weapon="sword"):
@@ -235,14 +238,14 @@ def el_runner(c, uid, weapon="sword"):
     return (
         f'<g class="{uid}bob">'
         f'<g transform="translate(0 -44)"><g class="{uid}legB"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
-        # his cape, side-on: clasped at the collar, wrapped over the shoulder, then streaming long behind him
+        f'<path d="{torso}" fill="{ink}"/>'
+        f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
+        # the cape over his back (and the top of the torso), then the weapon on top of it, resting on his shoulder
         f'<path d="{RUN_CAPE[0]}" fill="{acc}" stroke="{ink}" stroke-width="3" stroke-linejoin="round">'
         f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_CAPE + RUN_CAPE[:1])}"/></path>'
         f'<path d="{RUN_FOLD[0]}" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.55">'
         f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_FOLD + RUN_FOLD[:1])}"/></path>'
         f'{sword}'
-        f'<path d="{torso}" fill="{ink}"/>'
-        f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
         # the same head as everywhere else (HAIR, headphones and all), sized for the runner
         f'<g transform="translate(-76 -158) scale(0.5)">{el_head(ink, paper)}</g>'
         f'{arm}{hand}'

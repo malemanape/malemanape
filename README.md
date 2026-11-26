@@ -15,24 +15,24 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 
 *ἀρετή (arete): excellence, the full realization of one's potential. The idea I build around.*
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=d24dd706"><img src="assets/about-light.svg?v=871376ee" alt="About El" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=e574c3d6"><img src="assets/about-light.svg?v=e85ebfba" alt="About El" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg?v=8ac44398"><img src="assets/h-stack-light.svg?v=9d73c49c" alt="Stack" width="830"></picture></h3>
 <p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stack-dark.svg?v=f433958c"><img src="generated/stack-light.svg?v=582c1b18" alt="Stack: the languages and tools I build with" width="830"></picture></a></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stats-dark.svg?v=3360faf7"><img src="assets/h-stats-light.svg?v=a9f79ca3" alt="Stats" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=7e65c1e1"><img src="generated/stats-light.svg?v=1007bfbd" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=9d865989"><img src="generated/streak-light.svg?v=0a3d3829" alt="Contribution streak" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=ca040ac1"><img src="generated/year-light.svg?v=6ffcbffb" alt="Contributions over the past year" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=86539dcc"><img src="generated/stats-light.svg?v=937dc4c5" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=fbd7cf31"><img src="generated/streak-light.svg?v=403611f5" alt="Contribution streak" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=1cf2b809"><img src="generated/year-light.svg?v=17671f9a" alt="Contributions over the past year" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-gallery-dark.svg?v=fa0ee676"><img src="assets/h-gallery-light.svg?v=df6e154a" alt="The gallery" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg?v=921b5b74"><img src="assets/gallery-light.svg?v=462d2c0f" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-activity-dark.svg?v=4f0ceaf0"><img src="assets/h-activity-light.svg?v=751602b1" alt="Recent activity" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=d65de91a"><img src="generated/ticker-light.svg?v=ceb5d67d" alt="Latest pushes" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=128addab"><img src="generated/ticker-light.svg?v=c3bf0d8b" alt="Latest pushes" width="830"></picture></p>
 <p align="center">
-  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=bee667a7"><img src="generated/repo-1-light.svg?v=87039287" alt="my-portfolio" width="412"></picture></a>
-  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=aa465851"><img src="generated/repo-2-light.svg?v=2a99a95d" alt="ThriftBite" width="412"></picture></a>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=0740929f"><img src="generated/repo-1-light.svg?v=7912e137" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=d1305ed2"><img src="generated/repo-2-light.svg?v=17ad6cf6" alt="ThriftBite" width="412"></picture></a>
 </p>
 <p align="center">
   <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=bbd31cbe"><img src="generated/repo-3-light.svg?v=b13a2af1" alt="webapp-secondserve" width="412"></picture></a>
@@ -41,7 +41,7 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/commit-dark.svg?v=3a8375a2"><img src="assets/commit-light.svg?v=ddc103ed" alt="git commit -m fix stuff. Just kidding." width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dodge-dark.svg?v=012f48ef"><img src="assets/dodge-light.svg?v=929643af" alt="dodge.exe" width="830"></picture></p>
+<p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dodge-dark.svg?v=59ea1e16"><img src="assets/dodge-light.svg?v=608e9adb" alt="dodge.exe: click to play it on the portfolio" width="830"></picture></a></p>
 <p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/footer-dark.svg?v=33a2959c"><img src="assets/footer-light.svg?v=1ff446eb" alt="End of file. The full story is on the portfolio." width="830"></picture></a></p>
 
 <!-- Generated by scripts/readme.py from profile.config.json. Edit the config, not this file. -->

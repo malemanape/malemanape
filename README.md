@@ -1,6 +1,6 @@
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/wip-dark.svg?v=0adb0ffd"><img src="assets/wip-light.svg?v=254d3321" alt="WORK IN PROGRESS: El is still building this profile. pardon the dust (•_•)" width="830"></picture></p>
 <p align="center">
-  <a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg?v=4ecd6ee8"><img src="assets/banner-light.svg?v=05b15f83" alt="El. Steven D. Cruz: Full-stack today. AI engineering next." width="830"></picture></a>
+  <a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="https://malemanape.vercel.app/api/banner?theme=dark&amp;v=2613658e"><img src="https://malemanape.vercel.app/api/banner?theme=light&amp;v=2613658e" alt="El. Steven D. Cruz: Full-stack today. AI engineering next." width="830"></picture></a>
 </p>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/typing-dark.svg?v=a7d25dbc"><img src="assets/typing-light.svg?v=f3aad735" alt="&gt; full-stack today. AI engineering next. / every bug is a side quest I didn&#x27;t sign up for / learning RAG, properly this time / writing lore between commits / power systems by night, pull requests by day / arete: be excellent on purpose" width="830"></picture></p>
 <p align="center">
@@ -15,15 +15,15 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 
 *ἀρετή (arete): excellence, the full realization of one's potential. The idea I build around.*
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=6911d1f5"><img src="assets/about-light.svg?v=3f66dcb1" alt="About El" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=3f43731e"><img src="assets/about-light.svg?v=08df38fd" alt="About El" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg?v=8ac44398"><img src="assets/h-stack-light.svg?v=9d73c49c" alt="Stack" width="830"></picture></h3>
 <p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stack-dark.svg?v=f433958c"><img src="generated/stack-light.svg?v=582c1b18" alt="Stack: the languages and tools I build with" width="830"></picture></a></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stats-dark.svg?v=3360faf7"><img src="assets/h-stats-light.svg?v=a9f79ca3" alt="Stats" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=fead5bb9"><img src="generated/stats-light.svg?v=a0aa32e1" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=c861d7d4"><img src="generated/streak-light.svg?v=b7603c6d" alt="Contribution streak" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=dd816bf3"><img src="generated/year-light.svg?v=20c205cc" alt="Contributions over the past year" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=37752fce"><img src="generated/stats-light.svg?v=1ff5ac16" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=312ced1a"><img src="generated/streak-light.svg?v=e3aca714" alt="Contribution streak" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=8e1f3f6e"><img src="generated/year-light.svg?v=12f278e7" alt="Contributions over the past year" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-gallery-dark.svg?v=fa0ee676"><img src="assets/h-gallery-light.svg?v=df6e154a" alt="The gallery" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg?v=921b5b74"><img src="assets/gallery-light.svg?v=462d2c0f" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>

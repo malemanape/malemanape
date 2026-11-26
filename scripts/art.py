@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.svgkit import MONO_ADV, PALETTES, ROOT, THEMES, config, doc, dots, text, text_width, write
+import pocket_sprites
 
 W = 830
 
@@ -208,16 +209,19 @@ WEAPON_NAMES = {"sword": "greatsword", "zweihander": "zweihander", "axe": "great
 CARRY = {"greatbow": "translate(4 -80) rotate(-152) scale(0.85)"}
 
 
-# the running cape: three shapes with the same commands, so it ripples smoothly from one to the next
-RUN_CAPE = [
-    "M9 -90 C4 -95 -6 -94 -11 -88 C-34 -88 -62 -84 -92 -72 C-84 -66 -80 -62 -76 -54 C-64 -58 -56 -54 -50 -46 "
-    "C-38 -50 -28 -46 -16 -40 C-14 -58 -10 -76 2 -86 Z",
-    "M9 -90 C4 -95 -6 -94 -11 -88 C-36 -92 -66 -92 -98 -86 C-90 -78 -86 -72 -82 -64 C-70 -66 -62 -60 -54 -52 "
-    "C-42 -54 -30 -48 -16 -40 C-14 -58 -10 -76 2 -86 Z",
-    "M9 -90 C4 -95 -6 -94 -11 -88 C-32 -84 -58 -76 -86 -60 C-78 -56 -74 -50 -72 -42 C-60 -48 -52 -44 -46 -38 "
-    "C-36 -42 -26 -40 -16 -40 C-14 -58 -10 -76 2 -86 Z",
-]
-RUN_FOLD = ["M-14 -84 C-30 -80 -46 -72 -58 -58", "M-14 -84 C-32 -84 -50 -78 -64 -66", "M-14 -84 C-28 -78 -42 -66 -52 -52"]
+# the running cape, as in the portfolio's grand opening (intro-art.ts): clasped at the collar, wrapped over his
+# shoulder and down his back past the torso, then sweeping back into one pointed tail that lifts in the wind.
+# Three shapes with the same commands, so it ripples smoothly from one to the next; w nudges the tail.
+def _run_cape(w0, w1, w2, w3):
+    return (f"M12 -88 C4 -98 -14 -98 -26 -94 "
+            f"C-50 {-96 + w0} -80 {-94 + w1} -104 {-88 + w2} "
+            f"Q-114 {-86 + w2} -124 {-82 + w3} "
+            f"C-104 {-62 + w3} -70 {-38 + w1} -34 -36 "
+            f"L-8 -42 C-2 -60 4 -74 12 -82 Z")
+
+
+RUN_CAPE = [_run_cape(0, 0, 0, 0), _run_cape(-4, -6, -9, -8), _run_cape(3, 4, 6, 7)]
+RUN_FOLD = ["M-10 -86 C-30 -76 -54 -64 -80 -56", "M-10 -86 C-32 -80 -58 -72 -84 -66", "M-10 -86 C-28 -74 -50 -60 -76 -50"]
 
 
 def el_runner(c, uid, weapon="sword"):
@@ -235,14 +239,14 @@ def el_runner(c, uid, weapon="sword"):
     return (
         f'<g class="{uid}bob">'
         f'<g transform="translate(0 -44)"><g class="{uid}legB"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
-        # his cape, side-on: clasped at the collar, wrapped over the shoulder, then streaming long behind him
+        f'<path d="{torso}" fill="{ink}"/>'
+        f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
+        # the cape over his back (and the top of the torso), then the weapon on top of it, resting on his shoulder
         f'<path d="{RUN_CAPE[0]}" fill="{acc}" stroke="{ink}" stroke-width="3" stroke-linejoin="round">'
         f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_CAPE + RUN_CAPE[:1])}"/></path>'
         f'<path d="{RUN_FOLD[0]}" fill="none" stroke="{ink}" stroke-width="2" stroke-linecap="round" opacity="0.55">'
         f'<animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="{";".join(RUN_FOLD + RUN_FOLD[:1])}"/></path>'
         f'{sword}'
-        f'<path d="{torso}" fill="{ink}"/>'
-        f'<g transform="translate(0 -44)"><g class="{uid}legF"><g transform="translate(0 44)">{leg.format(f=ink)}</g></g></g>'
         # the same head as everywhere else (HAIR, headphones and all), sized for the runner
         f'<g transform="translate(-76 -158) scale(0.5)">{el_head(ink, paper)}</g>'
         f'{arm}{hand}'
@@ -496,109 +500,255 @@ def commit(theme: str, cfg: dict) -> str:
 
 # ---------------------------------------------------------------- dodge.exe
 
-# Same scene as the portfolio's Runner.astro (El from the side, spiky hair, hopping over errors).
-# The portfolio runs it with JavaScript; here it's one precomputed loop in CSS.
-RUN_HEAD = "M13 12 C13 5 18 1 24 1 L23 -7 L28 -1 L31 -9 L33 0 L38 -5 L37 4 C39 7 39 15 36 19 C33 23 27 24 22 23 C16 22 13 18 13 12 Z"
-CLOUD = "q8 -10 18 -4 q8 -8 16 2 q8 0 8 8 h-46 q0 -8 4 -6z"
+# The portfolio's Pocket runner (src/scripts/dodge.ts) in its demo: a Game Boy style screen in four cyans, El with
+# his headphones and cape running by himself, hopping the walking bugs and the low moth, staying under the fly.
+# The portfolio plays it live with JavaScript; GitHub can't, so here one loop of the demo is worked out ahead
+# of time and played back with CSS. The README links the picture to the portfolio, where it's playable.
+
+# the screen, in the portfolio's pixels, and its physics (dodge.ts: W, H, GROUND, EL_X, SPEED, GRAVITY, JUMP_V)
+PK_W, PK_H, PK_GROUND, PK_EL_X = 256, 96, 80, 30
+PK_SPEED, PK_GRAVITY, PK_JUMP_V = 92, 620, 222
+PK_AIR = 2 * PK_JUMP_V / PK_GRAVITY                 # 0.716 s in the air
+PK_PEAK = PK_JUMP_V ** 2 / (2 * PK_GRAVITY)         # 39.7 px up
+PK_TRIGGER = 12 + PK_SPEED * 0.05                   # the demo jumps when a bug is this close (dodge.ts step())
+# lightest, light, mid, darkest; the dark theme flips the ramp so the screen glows
+PK_RAMP = {"light": ["#E2F0EE", "#9CCBD1", "#2F7F92", "#0F2E36"], "dark": ["#0F2328", "#1F4852", "#4FA4B9", "#D6EEF2"]}
+# one loop of the demo: (bug, where it starts along the track). Walkers and flyers mixed, never crowding,
+# so El always lands before the next jump and no walker needs a jump while the fly is overhead.
+PK_SEQ = [("ladybug", 0), ("slime", 150), ("caterpillar", 300), ("moth", 480), ("snail", 640), ("fly", 800),
+          ("ladybug", 980), ("slime", 1110), ("moth", 1270), ("caterpillar", 1420), ("snail", 1590), ("fly", 1750)]
+PK_LOOP = 1930
 
 
-def _bug(label: str, c: dict) -> tuple[str, float]:
-    if label == "!":
-        return (f'<path d="M13 0 L26 24 L0 24 Z" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5" stroke-linejoin="round"/>'
-                f'<path d="M13 8 V15" stroke="{c["ink"]}" stroke-width="2.6" stroke-linecap="round"/>'
-                f'<circle cx="13" cy="19.5" r="1.6" fill="{c["ink"]}"/>'), 26
-    w = max(26, len(label) * 8 + 14)
-    return (f'<rect x="0" y="0" width="{w}" height="24" rx="3" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="2.5"/>'
-            + text(label, w / 2, 16.5, 11, c["ink"], wght=700, anchor="middle")), w
+def pixels(rows: list[str], pal: dict[str, str], x: int = 0, y: int = 0) -> str:
+    """A pixel sprite as one path per colour: each horizontal run of a colour is one small rectangle."""
+    runs: dict[str, list[str]] = {}
+    for r, row in enumerate(rows):
+        q = 0
+        while q < len(row):
+            col = pal.get(row[q])
+            n = 1
+            while q + n < len(row) and row[q + n] == row[q]:
+                n += 1
+            if col:
+                runs.setdefault(col, []).append(f"M{x + q} {y + r}h{n}v1h-{n}z")
+            q += n
+    return "".join(f'<path d="{"".join(d)}" fill="{col}"/>' for col, d in runs.items())
 
 
-def dodge(theme: str, cfg: dict) -> str:
-    c = PALETTES[theme]
-    VW, VH = 560, 150                      # the scene, in the portfolio's units (its screen is 400 wide)
-    GUY_X, GUY_W, GROUND_Y = 52, 42, 128
-    SPEED, JUMP_T, PEAK = 170, 0.72, 64.8   # same physics as footer.ts: 360 up, 1000 gravity
-    L = 3400                               # one loop of track
-    T = L / SPEED                          # 20 s
-    seq = [("ERR", 0), ("404", 300), ("!", 640), ("NaN", 900), ("TODO", 1260),
-           ("}", 1560), ("null", 1880), ("ERR", 2240), ("!", 2520), ("404", 2860)]
-    start = VW + 20
-    # track: two copies so the screen is never empty at the seam
-    track, passes, jumps = "", [], []
-    for label, off in seq:
-        g, w = _bug(label, c)
-        for k in (-1, 0):
-            x = start + off + k * L
-            track += f'<g transform="translate({x} {GROUND_Y - 24})">{g}</g>'
-        x0 = start + off
-        passes.append(((x0 + w - GUY_X) / SPEED) % T)
-        jumps.append(((x0 - (GUY_X + GUY_W + 20)) / SPEED) % T)
+def pixel_text(s: str, col: str, x: float, y: float, k: int = 1) -> str:
+    """Words in the 3x5 pixel font, k pixels per font pixel."""
+    glyphs = [pocket_sprites.FONT.get(ch, pocket_sprites.FONT[" "]) for ch in s]
+    # row r of each glyph is 3 pixels; a blank column between letters
+    rows = [".".join(g[r * 3:r * 3 + 3] for g in glyphs).replace("1", "#").replace("0", ".") for r in range(5)]
+    return f'<g transform="translate({x} {y}) scale({k})">{pixels(rows, {"#": col})}</g>'
 
-    def pct(t):
-        return f"{t / T * 100:.3f}%"
 
-    # El's jump: up with ease-out, down with ease-in, same arc as the portfolio
-    kf = ["0%{transform:translateY(0)}"]
-    for j in sorted(jumps):
-        kf.append(f"{pct(j)}{{transform:translateY(0);animation-timing-function:cubic-bezier(.33,1,.68,1)}}")
-        kf.append(f"{pct(j + JUMP_T / 2)}{{transform:translateY(-{PEAK}px);animation-timing-function:cubic-bezier(.32,0,.67,0)}}")
-        kf.append(f"{pct(j + JUMP_T)}{{transform:translateY(0)}}")
-    kf.append("100%{transform:translateY(0)}")
-    # the score: one label per count, each shown between two passes
-    order = sorted(passes)
-    score_g, score_css = "", ""
-    bounds = [0.0] + order + [T]
-    for n in range(len(order) + 1):
+def pk_text_w(s: str, k: int = 1) -> int:
+    return len(s) * 4 * k - k
+
+
+def _frames(cls: str, frames: list[str]) -> str:
+    """Frames of a little animation, stacked; CSS (see _frames_css) shows one at a time."""
+    return "".join(f'<g class="{cls} f{k}">{f}</g>' for k, f in enumerate(frames))
+
+
+def _frames_css(anims: dict[str, tuple[int, float]]) -> str:
+    """CSS for _frames: {class: (frames, period in s)}. Frame k of n shows during the k-th n-th of each period
+    (one keyframe set per n, offset per frame). Every frame but the first starts hidden, so a still shows frame 0."""
+    counts = sorted({n for n, _ in anims.values()})
+    css = "".join(f"@keyframes fr{n}{{0%{{visibility:visible}}{100 / n:.3f}%,100%{{visibility:hidden}}}}" for n in counts)
+    css += ",".join(f".f{k}" for k in range(1, max(counts))) + "{visibility:hidden}"
+    for cls, (n, period) in anims.items():
+        css += f".{cls}{{animation:fr{n} {period:.3f}s steps(1,end) infinite}}"
+        css += "".join(f".{cls}.f{k}{{animation-delay:-{((n - k) % n) * period / n:.3f}s}}" for k in range(n))
+    return css
+
+
+def _pk_bug(kind: str, P: list[str]) -> tuple[str, int]:
+    """One bug, drawn with its feet (or its flying height) on the ground line at x = 0. Returns (svg, width)."""
+    S = pocket_sprites
+    b = S.BUGS[kind]
+    pal = {"w": P[0], "l": P[1], "m": P[2], "#": P[3]}
+    bottom = PK_GROUND - b["lift"]
+    if kind == "caterpillar":
+        # the segments ripple, each a pixel out of step with its neighbour (2 frames); 404 on its back
+        frames = []
+        for f in (0, 1):
+            g = ""
+            for i in (2, 1, 0):
+                sx, up = 8 + i * 8, (f + i) % 2
+                g += pixels(S.CATERPILLAR_SEG, pal, sx, bottom - 9 - up)
+                g += pixel_text("404"[i], P[3], sx + 3, bottom - 7 - up)
+                g += f'<path d="M{sx + 2 + up * 2} {bottom - 1}h1v1h-1z M{sx + 6 - up * 2} {bottom - 1}h1v1h-1z" fill="{P[3]}"/>'
+            frames.append(g + pixels(S.CATERPILLAR_HEAD, pal, 0, bottom - 10 - f))
+        return _frames("acat", frames), b["w"]
+    if kind == "snail":
+        # its shell is a loading spinner: a dotted ring with a dark head and a mid tail going round (8 frames)
+        sx, sy = 6, bottom - b["h"] - 1
+        frames = []
+        for head in range(8):
+            dots = ""
+            for k in range(8):
+                back = (head - k + 8) % 8
+                if back >= 3 and k % 2:
+                    continue
+                a = k / 8 * math.tau
+                dots += (f'<path d="M{round(sx + 5 + math.cos(a) * 3.2)} {round(sy + 5 + math.sin(a) * 3.2)}h1v1h-1z" '
+                         f'fill="{P[3] if back == 0 else P[2]}"/>')
+            frames.append(dots)
+        body = pixels(S.SNAIL_BODY, pal, 0, bottom - b["h"]) + pixels(S.SNAIL_SHELL, pal, sx, sy)
+        return body + _frames("asnail", frames), b["w"]
+    frames = [pixels(f, pal, 0, bottom - b["h"]) + (pixel_text(b["label"], P[0], 2, bottom - b["h"] + 5) if b.get("label") else "")
+              for f in b["frames"]]
+    g = _frames(f"a{kind}", frames)
+    return (f'<g class="bob{kind}">{g}</g>' if kind in ("moth", "fly") else g), b["w"]
+
+
+def _pk_el(P: list[str], frame: int, x: int = PK_EL_X) -> str:
+    """Pocket El standing on the ground (dodge.ts drawEl): cape, then him, then his legs. frame 2 is the jump."""
+    S = pocket_sprites
+    pal = {"#": P[3], "o": P[0], "h": P[2], "b": P[1], "c": P[2]}
+    top = PK_GROUND - 18
+    return (pixels(S.CAPE[frame], pal, x - 4, top + (8 if frame == 2 else 9))
+            + pixels(S.EL_TOP, pal, x, top) + pixels(S.EL_LEGS[frame], pal, x, top + 14))
+
+
+PK_START = PK_W + 8                                 # bugs come in just past the right edge
+
+
+def _pk_timeline() -> tuple[float, list[float], list[float]]:
+    """One loop of the demo: (its length in s, when El jumps, when each bug is behind him and counts).
+    Checks the loop plays like the portfolio's demo: he lands before the next jump, and never needs to
+    jump while the fly is overhead. Edit PK_SEQ and this tells you if a gap got too tight."""
+    T = PK_LOOP / PK_SPEED
+    jumps, passes, flies = [], [], []
+    for kind, off in PK_SEQ:
+        x0 = PK_START + off
+        passes.append(((x0 + pocket_sprites.BUGS[kind]["w"] - (PK_EL_X + 2)) / PK_SPEED) % T)
+        if kind == "fly":                                           # he runs under the fly
+            flies.append(((x0 - PK_EL_X) / PK_SPEED) % T)
+        else:
+            jumps.append(((x0 - (PK_EL_X + 10) - PK_TRIGGER) / PK_SPEED) % T)
+    jumps.sort()
+    for a, b in zip(jumps, jumps[1:] + [jumps[0] + T]):
+        if b - a < PK_AIR + 0.1:
+            raise ValueError(f"dodge.exe: jumps at {a:.2f}s and {b % T:.2f}s overlap; spread PK_SEQ out")
+    for f in flies:
+        if any(abs((j - f + T / 2) % T - T / 2) < PK_AIR for j in jumps):
+            raise ValueError(f"dodge.exe: El would jump into the fly at {f:.2f}s; spread PK_SEQ out")
+    return T, jumps, passes
+
+
+def _pk_score(T: float, passes: list[float], col: str) -> tuple[str, str]:
+    """The title bar's count: one label per number, each shown between two passes. Returns (svg, css)."""
+    g, css = "", ""
+    bounds = [0.0] + sorted(passes) + [T]
+    for n in range(len(passes) + 1):
         a, b = bounds[n], bounds[n + 1]
         if b - a < 0.01:
             continue
         vis = (f"0%{{visibility:{'visible' if a == 0 else 'hidden'}}}"
-               + (f"{pct(a)}{{visibility:visible}}" if a > 0 else "")
-               + f"{pct(b)}{{visibility:hidden}}100%{{visibility:hidden}}")
-        score_css += f".n{n}{{animation:n{n} {T:.2f}s steps(1,end) infinite}}@keyframes n{n}{{{vis}}}"
-        score_g += f'<g class="n n{n}">' + text(f"{n:03d}", 0, 0, 13, c["on_panel"], mono=True, bold=True) + "</g>"
+               + (f"{a / T * 100:.3f}%{{visibility:visible}}" if a > 0 else "")
+               + f"{b / T * 100:.3f}%{{visibility:hidden}}100%{{visibility:hidden}}")
+        css += f".n{n}{{animation:n{n} {T:.2f}s steps(1,end) infinite}}@keyframes n{n}{{{vis}}}"
+        g += f'<g class="n n{n}">' + text(f"{n:03d}", 0, 0, 13, col, mono=True, bold=True) + "</g>"
+    return g, ".n{visibility:hidden}" + css
 
-    # layout: bar on top, screen below, caption under it
-    S = (W - 14 - 6) / VW                  # scale the scene to fill the panel
-    bar_h, sx, sy = 34, 3, 34
-    screen_h = VH * S
-    h = sy + screen_h + 3
-    clouds = "".join(f'<path d="M{x} 34 {CLOUD}"/><path d="M{x + 200} 22 {CLOUD}"/>' for x in range(60, 2 * VW + 400, 400))
-    dashes = "".join(f"M{x + 10} 138 h8 M{x + 40} 136 h4 M{x + 25} 141 h6 " for x in range(0, VW + 120, 60))
-    guy = (f'<g class="guy"><g transform="translate({GUY_X} 74)">'
-           f'<path d="{RUN_HEAD}" fill="{c["ink"]}"/><circle cx="31.5" cy="12" r="2.1" fill="{c["paper"]}"/>'
-           f'<rect x="17" y="26" width="15" height="17" rx="4" fill="{c["ink"]}"/>'
-           f'<path d="M26 30 L37 36" stroke="{c["ink"]}" stroke-width="4.5" stroke-linecap="round"/>'
-           f'<g class="la" stroke="{c["ink"]}" stroke-width="5" stroke-linecap="round" fill="none"><path d="M21 43 L14 54"/><path d="M28 43 L36 53"/></g>'
-           f'<g class="lb" stroke="{c["ink"]}" stroke-width="5" stroke-linecap="round" fill="none"><path d="M22 43 L21 54"/><path d="M27 43 L30 54"/></g>'
-           f"</g></g>")
-    score_label = "bugs dodged "
+
+def dodge(theme: str, cfg: dict) -> str:
+    c, P = PALETTES[theme], PK_RAMP[theme]
+    T, jumps, passes = _pk_timeline()                   # one loop, about 21 s
+
+    def pct(t):
+        return f"{(t % T) / T * 100:.3f}%"
+
+    # the track: every bug of the loop, twice, so the screen never empties at the seam
+    track = ""
+    for kind, off in PK_SEQ:
+        g, _ = _pk_bug(kind, P)
+        for k in (-1, 0):
+            track += f'<g transform="translate({PK_START + off + k * PK_LOOP} 0)">{g}</g>'
+
+    # the jump: a true parabola, up with a quadratic ease-out, down with the matching ease-in
+    up, down = "cubic-bezier(.33,.67,.67,1)", "cubic-bezier(.33,0,.67,.33)"
+    kf = ["0%{transform:translateY(0)}"]
+    air = ["0%{visibility:hidden}"]
+    ground = ["0%{visibility:visible}"]
+    for j in jumps:
+        kf += [f"{pct(j)}{{transform:translateY(0);animation-timing-function:{up}}}",
+               f"{pct(j + PK_AIR / 2)}{{transform:translateY(-{PK_PEAK:.1f}px);animation-timing-function:{down}}}",
+               f"{pct(j + PK_AIR)}{{transform:translateY(0)}}"]
+        air += [f"{pct(j)}{{visibility:visible}}", f"{pct(j + PK_AIR)}{{visibility:hidden}}"]
+        ground += [f"{pct(j)}{{visibility:hidden}}", f"{pct(j + PK_AIR)}{{visibility:visible}}"]
+    kf.append("100%{transform:translateY(0)}")
+
+    score_g, score_css = _pk_score(T, passes, c["on_panel"])
+
+    # the scenery: far hills and clouds drift slower than the ground (dodge.ts draw())
+    hills = "".join(f'<path d="M{x} {PK_GROUND} l22 -22 l8 6 l14 -12 l26 28 Z"/>' for x in range(-64, PK_W + 128, 64))
+    clouds = "".join(f'<path d="M{x} 16h18v4h-18z M{x + 4} 12h8v4h-8z M{x + 50} 28h14v3h-14z M{x + 53} 25h6v3h-6z"/>'
+                     for x in range(20, PK_W + 320, 160))
+    specks = "".join(f'M{x} {PK_GROUND + 5}h4v1h-4z M{x + 13} {PK_GROUND + 9}h2v1h-2z ' for x in range(-24, PK_W + 48, 24))
+    el = (f'<g class="elrun">{_frames("aleg", [_pk_el(P, 0), _pk_el(P, 1)])}</g>'
+          f'<g class="eljump">{_pk_el(P, 2)}</g>')
+    shadow = (f'<path class="elrun" d="M{PK_EL_X + 1} {PK_GROUND + 1}h10v1h-10z" fill="{P[2]}"/>'
+              f'<path class="eljump" d="M{PK_EL_X + 3} {PK_GROUND + 1}h6v1h-6z" fill="{P[2]}"/>')
+    hud = (f'<g class="blink">{pixel_text("DEMO", P[3], 6, 5)}</g>'
+           + pixel_text("CLICK TO PLAY", P[3], (PK_W - pk_text_w("CLICK TO PLAY", 2)) // 2, 30, 2))
+    grid_op = "0.18" if theme == "dark" else "0.08"
+    lcd = (f'<pattern id="lcd" width="1" height="1" patternUnits="userSpaceOnUse">'
+           f'<path d="M0 0.92h1v0.08h-1z M0.92 0h0.08v1h-0.08z" fill="#000" opacity="{grid_op}"/></pattern>')
+
+    # layout: the title bar, the screen under it (the portfolio's shape), the caption
+    bar_h, inner_w = 34, W - 20
+    screen_h = inner_w * PK_H / PK_W
+    h = bar_h + screen_h + 3
     score_x = W - 14 - 14 - 13 * MONO_ADV * 3
     body = (
         f'<rect x="0" y="0" width="{W - 14}" height="{bar_h}" fill="{c["panel_bg"]}"/>'
         + text("dodge.exe", 14, 22, 13, c["on_panel"], wght=700)
-        + text(score_label, score_x - 6, 22, 13, c["on_panel"], wght=500, anchor="end")
+        + text("bugs dodged ", score_x - 6, 22, 13, c["on_panel"], wght=500, anchor="end")
         + f'<g transform="translate({score_x:.1f} 22)">{score_g}</g>'
-        + f'<rect x="1.5" y="{bar_h}" width="{W - 17}" height="{screen_h + 1.5:.1f}" fill="{c["paper"]}" stroke="{c["ink"]}" stroke-width="3"/>'
+        + f'<rect x="1.5" y="{bar_h}" width="{W - 17}" height="{screen_h + 1.5:.1f}" fill="{P[0]}" stroke="{c["ink"]}" stroke-width="3"/>'
         + f'<rect x="0" y="{bar_h - 1.5}" width="{W - 14}" height="3" fill="{c["panel_bg"]}"/>'
-        + f'<svg x="{sx}" y="{sy}" width="{W - 20}" height="{screen_h:.1f}" viewBox="0 0 {VW} {VH}" overflow="hidden">'
-        f'<g class="clouds" fill="none" stroke="{c["ink"]}" stroke-width="2" opacity="0.35">{clouds}</g>'
-        f'<line x1="0" y1="{GROUND_Y}" x2="{VW}" y2="{GROUND_Y}" stroke="{c["ink"]}" stroke-width="2.5"/>'
-        f'<path class="ground" d="{dashes}" stroke="{c["ink"]}" stroke-width="2" stroke-linecap="round" opacity="0.5"/>'
-        f'<g class="track">{track}</g>{guy}</svg>'
+        + f'<svg x="3" y="{bar_h}" width="{inner_w}" height="{screen_h:.1f}" viewBox="0 0 {PK_W} {PK_H}" overflow="hidden" shape-rendering="crispEdges">'
+        f'<defs>{lcd}</defs>'
+        f'<rect width="{PK_W}" height="{PK_H}" fill="{P[0]}"/>'
+        f'<g class="hills" fill="{P[1]}">{hills}</g><g class="clouds" fill="{P[1]}">{clouds}</g>'
+        f'<rect x="0" y="{PK_GROUND}" width="{PK_W}" height="2" fill="{P[3]}"/>'
+        f'<path class="specks" d="{specks}" fill="{P[2]}"/>'
+        f'<g class="track">{track}</g>{shadow}<g class="guy">{el}</g>{hud}'
+        f'<rect width="{PK_W}" height="{PK_H}" fill="url(#lcd)"/></svg>'
     )
     cap_y = h + 22
     body += text("Shipping, one bug at a time.", 2, cap_y, 13, c["muted"], wght=500)
+    body += text(" Click to play it on the portfolio.", 2 + text_width("Shipping, one bug at a time.", 13, wght=500), cap_y, 13, c["muted"], wght=400)
+    # a still for reduced motion: El mid-jump over a slime, as on the portfolio
+    slime_off = next(off for kind, off in PK_SEQ if kind == "slime")
+    still_x = PK_START + slime_off - (PK_EL_X + 4)
     css = (
-        f".track{{animation:track {T:.2f}s linear infinite}}@keyframes track{{to{{transform:translateX(-{L}px)}}}}"
-        f".ground{{animation:ground {60 / SPEED:.3f}s linear infinite}}@keyframes ground{{to{{transform:translateX(-60px)}}}}"
-        f".clouds{{animation:clouds {400 / (SPEED * 0.15):.2f}s linear infinite}}@keyframes clouds{{to{{transform:translateX(-400px)}}}}"
-        f".guy{{animation:jump {T:.2f}s linear infinite}}@keyframes jump{{{''.join(kf)}}}"
-        ".la{animation:step .22s steps(1,end) infinite}.lb{animation:step .22s steps(1,end) infinite reverse;opacity:0}"
-        "@keyframes step{0%{opacity:1}50%{opacity:0}}"
-        ".n{visibility:hidden}" + score_css
-        + "@media (prefers-reduced-motion:reduce){.guy{transform:translateY(-40px)}.n0{visibility:visible}}"
+        f".track{{animation:track {T:.3f}s linear infinite}}@keyframes track{{to{{transform:translateX(-{PK_LOOP}px)}}}}"
+        f".hills{{animation:hills {64 / (PK_SPEED * 0.15):.3f}s linear infinite}}@keyframes hills{{to{{transform:translateX(-64px)}}}}"
+        f".clouds{{animation:clouds {160 / (PK_SPEED * 0.08):.3f}s linear infinite}}@keyframes clouds{{to{{transform:translateX(-160px)}}}}"
+        f".specks{{animation:specks {24 / PK_SPEED:.4f}s linear infinite}}@keyframes specks{{to{{transform:translateX(-24px)}}}}"
+        f".guy{{animation:jump {T:.3f}s linear infinite}}@keyframes jump{{{''.join(kf)}}}"
+        f".eljump{{visibility:hidden;animation:air {T:.3f}s steps(1,end) infinite}}@keyframes air{{{''.join(air)}}}"
+        f".elrun{{animation:ground {T:.3f}s steps(1,end) infinite}}@keyframes ground{{{''.join(ground)}}}"
+        # frame rates as in dodge.ts: legs flip every 0.1 s, the bugs at their own fps
+        + _frames_css({"aleg": (2, 0.2), "aladybug": (2, 2 / 8), "aslime": (2, 2 / 3), "amoth": (2, 2 / 7),
+                       "afly": (2, 2 / 16), "acat": (2, 2 / 6), "asnail": (8, 8 / 10)})
+        # the flyers bob a pixel, at dodge.ts's rates: the moth sin(5t), the fly sin(9t)
+        + f".bobmoth{{animation:bobm {math.tau / 5:.3f}s steps(1,end) infinite}}@keyframes bobm{{0%{{transform:translateY(0)}}25%{{transform:translateY(-1px)}}50%{{transform:translateY(0)}}75%{{transform:translateY(1px)}}}}"
+        + f".bobfly{{animation:bobf {math.tau / 9:.3f}s steps(1,end) infinite}}@keyframes bobf{{0%{{transform:translateY(0)}}50%{{transform:translateY(-1px)}}}}"
+        + ".blink{animation:blink 1s steps(1,end) infinite}@keyframes blink{50%{visibility:hidden}}"
+        + score_css
+        + "@media (prefers-reduced-motion:reduce){*{animation:none!important}"
+        f".track{{transform:translateX(-{still_x}px)}}.guy{{transform:translateY(-26px)}}.elrun{{visibility:hidden}}.eljump{{visibility:visible}}.n0{{visibility:visible}}}}"
     )
-    label = "dodge.exe: El runs along and hops over errors (ERR, 404, NaN, TODO, null), counting the bugs he dodges."
+    label = ("dodge.exe: a Game Boy style screen in four shades of cyan. El, with his headphones and cape, runs by himself and "
+             "hops the bugs (a ladybug, a 404 caterpillar, an ERR slime, a loading snail, a low moth) and runs under a fly, "
+             "counting the bugs he dodges. Click to play it on the portfolio.")
     return doc(W, cap_y + 8, body, label, css)
 
 

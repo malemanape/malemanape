@@ -11,7 +11,7 @@
     { "from": 16, "name": "sunset",  "says": "the sunset arc hits different (^_^)" },
     { "from": 19, "name": "night",   "says": "El, go to sleep (-_-) zZ" }
   ],
-  "live_banner": "",
+  "live_banner": "https://malemanape.vercel.app",
 
   "wip": {
     "on": true,

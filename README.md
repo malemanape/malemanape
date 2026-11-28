@@ -29,14 +29,14 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg?v=921b5b74"><img src="assets/gallery-light.svg?v=462d2c0f" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-activity-dark.svg?v=4f0ceaf0"><img src="assets/h-activity-light.svg?v=751602b1" alt="Recent activity" width="830"></picture></h3>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=812c4b8f"><img src="generated/ticker-light.svg?v=b63ca14c" alt="Latest pushes" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/ticker-dark.svg?v=8073b0b3"><img src="generated/ticker-light.svg?v=58ce0da1" alt="Latest pushes" width="830"></picture></p>
 <p align="center">
-  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=d2bf81bd"><img src="generated/repo-1-light.svg?v=20b8d668" alt="my-portfolio" width="412"></picture></a>
+  <a href="https://github.com/malemanape/my-portfolio"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-1-dark.svg?v=a2590cc8"><img src="generated/repo-1-light.svg?v=91fba7fe" alt="my-portfolio" width="412"></picture></a>
   <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=b19ad5d5"><img src="generated/repo-2-light.svg?v=a2a8b045" alt="ThriftBite" width="412"></picture></a>
 </p>
 <p align="center">
   <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=23597dd1"><img src="generated/repo-3-light.svg?v=9c817454" alt="webapp-secondserve" width="412"></picture></a>
-  <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg?v=c07be0f2"><img src="generated/repo-4-light.svg?v=95d031cd" alt="Ka-dugo" width="412"></picture></a>
+  <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg?v=6664138b"><img src="generated/repo-4-light.svg?v=a7731f92" alt="Ka-dugo" width="412"></picture></a>
 </p>
 
 

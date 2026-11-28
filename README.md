@@ -15,15 +15,15 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
 
 *ἀρετή (arete): excellence, the full realization of one's potential. The idea I build around.*
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=d4edafd1"><img src="assets/about-light.svg?v=6eade56b" alt="About El" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg?v=6545886a"><img src="assets/about-light.svg?v=84844085" alt="About El" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg?v=8ac44398"><img src="assets/h-stack-light.svg?v=9d73c49c" alt="Stack" width="830"></picture></h3>
 <p align="center"><a href="https://elsteven-cruz.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stack-dark.svg?v=f433958c"><img src="generated/stack-light.svg?v=582c1b18" alt="Stack: the languages and tools I build with" width="830"></picture></a></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stats-dark.svg?v=3360faf7"><img src="assets/h-stats-light.svg?v=a9f79ca3" alt="Stats" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/stats-dark.svg?v=b9c55caa"><img src="generated/stats-light.svg?v=a3a191af" alt="Power level: aura rank, stats and top languages" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=fbd7cf31"><img src="generated/streak-light.svg?v=403611f5" alt="Contribution streak" width="830"></picture></p>
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=03fcd55e"><img src="generated/year-light.svg?v=cb3a5dc2" alt="Contributions over the past year" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/streak-dark.svg?v=78d091b5"><img src="generated/streak-light.svg?v=a154be7a" alt="Contribution streak" width="830"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/year-dark.svg?v=f715966c"><img src="generated/year-light.svg?v=9cd8a281" alt="Contributions over the past year" width="830"></picture></p>
 
 <h3><picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-gallery-dark.svg?v=fa0ee676"><img src="assets/h-gallery-light.svg?v=df6e154a" alt="The gallery" width="830"></picture></h3>
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery-dark.svg?v=921b5b74"><img src="assets/gallery-light.svg?v=462d2c0f" alt="ASCII gallery: knight, koi, El waving, campfire" width="830"></picture></p>
@@ -35,7 +35,7 @@ Hi, I'm **El**. I build web apps front to back, write lore and power systems on 
   <a href="https://github.com/malemanape/ThriftBite"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-2-dark.svg?v=b19ad5d5"><img src="generated/repo-2-light.svg?v=a2a8b045" alt="ThriftBite" width="412"></picture></a>
 </p>
 <p align="center">
-  <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=6841591e"><img src="generated/repo-3-light.svg?v=c0b0fcbd" alt="webapp-secondserve" width="412"></picture></a>
+  <a href="https://github.com/malemanape/webapp-secondserve"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-3-dark.svg?v=23597dd1"><img src="generated/repo-3-light.svg?v=9c817454" alt="webapp-secondserve" width="412"></picture></a>
   <a href="https://github.com/malemanape/Ka-dugo"><picture><source media="(prefers-color-scheme: dark)" srcset="generated/repo-4-dark.svg?v=c07be0f2"><img src="generated/repo-4-light.svg?v=95d031cd" alt="Ka-dugo" width="412"></picture></a>
 </p>
 
